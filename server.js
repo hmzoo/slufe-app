@@ -28,6 +28,13 @@ else{
 app.use(express.static(path.join(__dirname, 'dist')));
 }
 
+app.get('/key', (req, res) => {
+  bddreq.key().then( rep =>{
+    res.json(rep);
+  })
+});
+
+
 app.get('/set', (req, res) => {
   bddreq.set(req.query.uid,req.query.k,req.query.v).then( rep =>{
     res.json(rep);
