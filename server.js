@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 
-
+if (!isProd){
 require('vite').createServer({
   root:__dirname,
   logLevel: !isProd ? 'error' : 'info',
@@ -19,14 +19,14 @@ require('vite').createServer({
     },
   },
 }).then(vite =>{
-  
-  console.log(vite);
   app.use(vite.middlewares) });
 
-// app.get('/', function(req, res) {
-//   res.sendFile(path.join(__dirname, '/index.html'));
-// });
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '/index.html'));
+});}
+else{
 app.use(express.static(path.join(__dirname, 'dist')));
+}
 
 app.get('/set', (req, res) => {
   bddreq.set(req.query.uid,req.query.k,req.query.v).then( rep =>{

@@ -18,7 +18,7 @@ const testajax =()=> {
 </script>
 
 <template>
-COOL<br/>
+COOL!!!!!!!!!<br/>
 {{ message }}
 <br/>
 <button @click="testclick">Change message</button>
