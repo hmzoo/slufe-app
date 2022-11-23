@@ -24,4 +24,5 @@ COOL!!!!!!!!!<br/>
 <button @click="testclick">Change message</button>
 <br/>
 <button @click="testajax">Test ajax</button>
+<i-button>ok</i-button>
 </template>
