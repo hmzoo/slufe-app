@@ -2,7 +2,11 @@
 import { ref } from 'vue'
 import axios from 'axios';
 
-const message = ref("ok")
+const message = ref("msg")
+const selfkey = ref("selfkey")
+const key  = ref("key")
+const val = ref("val")
+
 const testclick =()=> {
            console.log("TESTCLICK")
             message.value = message.value+'t'
