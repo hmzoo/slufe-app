@@ -17,13 +17,9 @@ const bddreq = {
 
 //const rankey = () => { return "" + (100000+Math.floor(Math.random() * 900000)); }
 const rankey = () => { return "" + (1+Math.floor(Math.random() * 9)); }
-const ttl = 60;
+const ttl = 360;
 
-bddreq.new_uid = () => {
-    return {
-        uid: newuid()
-      };
-}
+// Get a key with uid
 
 bddreq.key = (n=12) => {
     
@@ -33,31 +29,27 @@ bddreq.key = (n=12) => {
           };
     }
     const key = rankey()
-    return bddreq.check_key_exists(key).then(ans=>{
+    return redis.exists(key_prefix+key).then(ans=>{
 
-      if(ans){
+      if(ans==1){
         return bddreq.key(n-1)
       }else{
         const uid=newuid();
             return redis.set(uid_prefix+uid,key,'ex', ttl).then(ans =>{ 
                 redis.set(key_prefix+key,"°_°",'ex', ttl)
-                return {key:key,uid:uid,msg:"key ok",tst:12-n};
+                return {key:key,uid:uid,msg:"new key",tst:12-n};
             })
       }
-
-
-
     })
-
-
-
 }
+
+// get value from key
 
 bddreq.get = (k) => {
     return redis.get(key_prefix+k).then(ans =>{
         return {
             val: ans,
-            msg: ""
+            msg: "val ok"
           };
     }).catch(err=>{
         return {
@@ -66,19 +58,22 @@ bddreq.get = (k) => {
     })
 }
 
+// set value with key and uid
+
 bddreq.set = (uid,k,v) => {
 
-    return bddreq.check_uid_key(uid,k).then(ans =>{
-        if(ans){
+    return redis.get(uid_prefix+uid).then(ans =>{
+        if(ans == k){
             return redis.set(key_prefix+k,v,'ex', ttl).then(ans =>{
                 return redis.set(val_prefix+v,k,'ex', ttl).then(ans =>{
+                    redis.set(uid_prefix+uid,k,'ex', ttl)
                 return {
-                    msg: "val changed"
+                    msg: "val updated"
                   };
             })})
         }else{
             return {
-                msg: "bad key"
+                msg: "bad key !"
               };
         }
 
@@ -88,35 +83,7 @@ bddreq.set = (uid,k,v) => {
    
 }
 
-bddreq.uid_key = (k) => {
-
-    return bddreq.check_key_exists(k).then(ans=>{
-        console.log(ans)
-        if(!ans){
-            const uid=newuid();
-            return redis.set(uid_prefix+uid,k,'ex', ttl).then(ans =>{ 
-                return {key:k,uid:uid,msg:"key ok"};
-            })
-        }else{
-                return {msg :"key not free"};
-        }
-
-    })
-
-}
-
-bddreq.check_key_exists =(k)=> {
-    return redis.exists(key_prefix+k).then(ans =>{
-        console.log("KEY",k,"ANS",ans)
-        return ans == 1
-    })
-}
-
-bddreq.check_uid_key =(uid,k)=> {
-    return redis.get(uid_prefix+uid).then(ans =>{
-        return ans == k
-    })
-}
+//util 
 
 bddreq.val_key = (v) => {
     return redis.get(val_prefix+v).then(ans =>{
