@@ -18,7 +18,6 @@ const app = express();
 
 
 app.use(express.json());
-
 app.use(cookieParser());
 
 app.use(session(
@@ -32,6 +31,32 @@ app.use(session(
     maxAge: 86400000
   }
 }));
+
+
+const check_session =(req)=>{
+  return new Promise ((resolve,reject)=>{
+    console.log(req.session.uid)
+  if(!req.session.uid){
+  bddreq.key().then( bddrep =>{
+    if(bddrep.uid && bddrep.key ) {
+      req.session.uid=bddrep.uid
+      req.session.key=bddrep.key
+      req.session.cpt=1
+    }
+    console.log(bddrep)
+    console.log(req.session.uid,req.session.key)
+    resolve(bddrep);
+  })}
+  else{
+    if (req.session.cpt){
+      req.session.cpt++
+      resolve( {key:req.session.key,msg:"old key"} );
+    }else{
+      reject(new Error("session err"));
+    }
+    
+  }
+})}
 
 
 if (!isProd){
@@ -51,59 +76,44 @@ app.use(vite.middlewares) });
 
 
 app.get('/', function(req, res) {
+  check_session(req).then(rep=>{
+    res.sendFile(path.join(__dirname, '/index.html'));
+  }).catch(err=>{return res.json({msg:err})});})
   
-  res.sendFile(path.join(__dirname, '/index.html'));
-});}
+}
 else{
-app.use(express.static(path.join(__dirname, 'dist')));
+  check_session(req).then(rep=>{
+   app.use(express.static(path.join(__dirname, 'dist')));
+}).catch(err=>{return res.json({msg:err})});
 }
 
 app.get('/key', (req, res) => {
 
-  if(req.session.uid && req.session.key && !req.query.new){
-    res.json({
-      key: req.session.key,
-      uid: req.session.uid,
-      msg:"old key",
-      tst:0,
-      cpt:0
-    });
-  }else{
-
-  bddreq.key().then( rep =>{
-    if(rep.uid && rep.key ) {
-      req.session.uid=rep.uid
-      req.session.key=rep.key
-    }
-    if (req.session.cpt){
-      req.session.cpt++
-    }else{
-      req.session.cpt=1
-    }
-    rep.cpt=req.session.cpt
-    console.log(req.session.cpt)
+  if(req.query.new){req.session.uid=false}
   
-    res.json(rep);
-  })
-}
-});
+  check_session(req).then(rep=>{
+    if(rep.uid){delete rep.uid;}
+      res.json(rep)
+    }).catch(err=>{return res.json({msg:err})});})
+     
+
 
 
 app.get('/set', (req, res) => {
-  console.log(req.session.uid,req.query.uid )
-  bddreq.set(req.session.uid,req.query.key,req.query.val).then( rep =>{
-    res.json(rep);
-  })
-});
+  check_session(req).then(rep=>{
+    return bddreq.set(req.session.uid,req.session.key,req.query.val).then( bddrep =>{
+    res.json(bddrep);
+    })}).catch(err=>{return res.json({msg:err})});})
+ 
 
 
 
 app.get('/get', (req, res) => {
-  bddreq.get(req.query.key).then( rep =>{
-    res.json(rep);
-  })
-});
-
+  check_session(req).then(rep=>{
+  return bddreq.get(req.query.key).then( bddrep =>{
+    res.json(bddrep);
+  })}).catch(err=>{return res.json({msg:err})});})
+ 
 
 
 const port = process.env.PORT || 5000;

@@ -15,8 +15,8 @@ const bddreq = {
 
 }
 
-//const rankey = () => { return "" + (100000+Math.floor(Math.random() * 900000)); }
-const rankey = () => { return "" + (1+Math.floor(Math.random() * 9)); }
+const rankey = () => { return "" + (100000+Math.floor(Math.random() * 900000)); }
+//const rankey = () => { return "" + (1+Math.floor(Math.random() * 9)); }
 const ttl = 360;
 
 // Get a key with uid
@@ -25,6 +25,7 @@ bddreq.key = (n=12) => {
     
     if(n<0){
         return {
+            key:"000000",
             msg: 'no free key !'
           };
     }
@@ -37,7 +38,7 @@ bddreq.key = (n=12) => {
         const uid=newuid();
             return redis.set(uid_prefix+uid,key,'ex', ttl).then(ans =>{ 
                 redis.set(key_prefix+key,"°_°",'ex', ttl)
-                return {key:key,uid:uid,msg:"new key",tst:12-n};
+                return {key:key,uid:uid,msg:"new key"};
             })
       }
     })
@@ -49,7 +50,7 @@ bddreq.get = (k) => {
     return redis.get(key_prefix+k).then(ans =>{
         return {
             val: ans,
-            msg: "val ok"
+            msg: "ok"
           };
     }).catch(err=>{
         return {
@@ -68,7 +69,7 @@ bddreq.set = (uid,k,v) => {
                 return redis.set(val_prefix+v,k,'ex', ttl).then(ans =>{
                     redis.set(uid_prefix+uid,k,'ex', ttl)
                 return {
-                    msg: "val updated"
+                    msg: "ok"
                   };
             })})
         }else{
