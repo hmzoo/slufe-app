@@ -21,99 +21,114 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(session(
-  {name : "slufe",
-  store: new RedisStore({ client: redisClient }),
-  saveUninitialized: false,
-  resave: false,
-  secret: "zQleLeWoJly1OSFF",
-  cookie : {
-    secure: false,
-    maxAge: 86400000
-  }
-}));
-
-
-const check_session =(req)=>{
-  return new Promise ((resolve,reject)=>{
-    console.log(req.session.uid)
-  if(!req.session.uid){
-  bddreq.key().then( bddrep =>{
-    if(bddrep.uid && bddrep.key ) {
-      req.session.uid=bddrep.uid
-      req.session.key=bddrep.key
-      req.session.cpt=1
+  {
+    name: "slufe",
+    store: new RedisStore({ client: redisClient }),
+    saveUninitialized: false,
+    resave: false,
+    secret: "zQleLeWoJly1OSFF",
+    cookie: {
+      secure: false,
+      maxAge: 86400000
     }
-    console.log(bddrep)
-    console.log(req.session.uid,req.session.key)
-    resolve(bddrep);
-  })}
-  else{
-    if (req.session.cpt){
-      req.session.cpt++
-      resolve( {key:req.session.key,msg:"old key"} );
-    }else{
-      reject(new Error("session err"));
-    }
-    
-  }
-})}
+  }));
 
+const ctrl_session_rate = (n, t) => {
 
-if (!isProd){
-require('vite').createServer({
-  root:__dirname,
-  logLevel: !isProd ? 'error' : 'info',
-  server: {
-    middlewareMode: true,
-    watch: {
-      usePolling: true,
-      interval: 100,
-    },
-  },
-}).then(vite =>{
-app.use(vite.middlewares) });
-
-
-
-app.get('/', function(req, res) {
-  check_session(req).then(rep=>{
-    res.sendFile(path.join(__dirname, '/index.html'));
-  }).catch(err=>{return res.json({msg:err})});})
-  
 }
-else{
-  check_session(req).then(rep=>{
-   app.use(express.static(path.join(__dirname, 'dist')));
-}).catch(err=>{return res.json({msg:err})});
+
+
+const check_session_key = (req) => {
+  return new Promise((resolve, reject) => {
+
+    if (!req.session.key_cpt) { req.session.key_cpt = 1; }
+
+    if (!req.session.uid && req.session.key_cpt < 30) {
+      req.session.key_cpt++;
+      bddreq.key().then(bddrep => {
+        if (bddrep.uid && bddrep.key) {
+          req.session.uid = bddrep.uid;
+          req.session.key = bddrep.key;
+        }
+        console.log(req.session.key_cpt, req.session.key)
+        bddrep.nk=req.session.key_cpt < 30
+        resolve(bddrep);
+      })
+    }
+    else {
+      if (req.session.key) {
+        resolve({ key: req.session.key, msg: "old key",nk:req.session.key_cpt < 30 });
+      } else {
+        reject(new Error("session err"));
+      }
+    }
+  })
+}
+
+
+if (!isProd) {
+
+  require('vite').createServer({
+    root: __dirname,
+    logLevel: !isProd ? 'error' : 'info',
+    server: {
+      middlewareMode: true,
+      watch: {
+        usePolling: true,
+        interval: 100,
+      },
+    },
+  }).then(vite => {
+    app.use(vite.middlewares)
+  });
+  app.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname, '/index.html'));
+  })
+} else {
+  app.use(express.static(path.join(__dirname, 'dist')));
 }
 
 app.get('/key', (req, res) => {
 
-  if(req.query.new){req.session.uid=false}
-  
-  check_session(req).then(rep=>{
-    if(rep.uid){delete rep.uid;}
-      res.json(rep)
-    }).catch(err=>{return res.json({msg:err})});})
-     
+  if (req.query.new) { req.session.uid = false }
+
+  check_session_key(req).then(rep => {
+    if (rep.uid) { delete rep.uid; }
+    res.json(rep)
+  }).catch(err => { return res.json({ msg: err }) });
+})
+
 
 
 
 app.get('/set', (req, res) => {
-  check_session(req).then(rep=>{
-    return bddreq.set(req.session.uid,req.session.key,req.query.val).then( bddrep =>{
-    res.json(bddrep);
-    })}).catch(err=>{return res.json({msg:err})});})
- 
+    if(req.session.uid && req.query.val){
+    return bddreq.set(req.session.uid, req.session.key, req.query.val).then(bddrep => {
+      res.json(bddrep);
+    }).catch(err => { return res.json({ msg: err }) });
+  }else{
+      res.json({ msg: "no key !" });
+  }
+  
+})
+
 
 
 
 app.get('/get', (req, res) => {
-  check_session(req).then(rep=>{
-  return bddreq.get(req.query.key).then( bddrep =>{
-    res.json(bddrep);
-  })}).catch(err=>{return res.json({msg:err})});})
- 
+  if (!req.session.get_cpt) { req.session.get_cpt = 1; }
+  if(req.session.uid && req.query.key &&req.session.get_cpt<100){
+    req.session.get_cpt++;
+    return bddreq.get(req.session.uid, req.session.key,req.query.key).then(bddrep => {
+      bddrep.cget = req.session.get_cpt<100
+      res.json(bddrep);
+    }).catch(err => { return res.json({ val:"°_°",cget:false,msg: err }) });
+  }else{
+    res.json({ val:"°_°",cget:false,msg: "no key !" });
+}
+  
+})
+
 
 
 const port = process.env.PORT || 5000;
