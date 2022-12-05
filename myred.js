@@ -11,18 +11,17 @@ const rankey = () => { return "" + (100000 + Math.floor(Math.random() * 900000))
 
 const myred = {
     new_key: (uid, n = 12) => {
-        if (n < 0) { return { key: "", flux: [] ,msg: "No free key !!" }; }
+        if (n < 0) { return { key: "", data: [] ,msg: "No free key !!" }; }
         const key = rankey();
-        return redis.exists("uid_" + key).then(ans => {
-            
+        return redis.exists("uid_" + key).then(ans => {    
             if (ans == 1) {
                 return myred.newkey(uid, n - 1);
             } else {
-                redis.del("flux_" + key);
+                redis.del("data_" + key);
                 redis.del("flw_" + key);
                 return redis.sadd("fwl_" + key, key).then(rep=>{
                     let msg="Your key is "+key;
-                    return redis.set("uid_" + key, uid, 'ex', ttl).then(ans => { return myred.json_flux(key,msg) });
+                    return redis.set("uid_" + key, uid, 'ex', ttl).then(ans => { return myred.json_data(key,msg) });
                 }) 
             }
         })
@@ -30,12 +29,16 @@ const myred = {
     check_key: (key, uid)=>{
         return redis.get("uid_" + key).then(ans => ans == uid)
     },
-    set_flux: (key, val) => {
+    reset_key: (key, uid)=>{
+        redis.del("data_" + key);
+        redis.del("flw_" + key);
+    },
+    set_data: (key, val) => {
          let msg ="";
          if (val){msg="Sharing";}else{msg="Not sharing"}
-         return redis.set("flux_" + key, val, 'ex', ttl).then(r => { return myred.json_flux(key,msg) }); 
+         return redis.set("data_" + key, val, 'ex', ttl).then(r => { return myred.json_data(key,msg) }); 
     },
-    add_flux: (key, qkey) => {
+    add_key: (key, qkey) => {
         
         return redis.exists("uid_" + qkey).then(ans => {
             console.log("add",key,qkey,ans)
@@ -43,26 +46,26 @@ const myred = {
             if(ans){
                 msg=qkey+ " added";
                         redis.sadd("fwl_" + qkey, key);
-                        return redis.sadd("fwl_" + key, qkey).then(r => { return myred.json_flux(key,msg) })
+                        return redis.sadd("fwl_" + key, qkey).then(r => { return myred.json_data(key,msg) })
             }else{
-                msg=qkey+ "nobody at "+qkey +" !!";
-                return myred.json_flux(key,msg) 
+                msg="nobody at "+qkey +" !!";
+                return myred.json_data(key,msg) 
             }
      })},
-     json_err: { key: "", flux: [] ,msg:"ERR" },
-    json_flux: ( key,msg) => {
-                let resp = { key: key, flux: [],msg:msg };
+     json_err: { key: "", fwl: [] ,msg:"ERR" },
+    json_data: ( key,msg) => {
+                let resp = { key: key, fwl: [],msg:msg };
                 return redis.smembers("fwl_" + key).then(keys => {
                     
                     if (keys && keys.length>0) {
                         const fwl_keys = keys.map(element => {
-                            return "flux_"+element;
+                            return "data_"+element;
                           });
                           console.log("fkeys",keys,fwl_keys);
-                        return redis.mget(fwl_keys).then(flux => {
-                            console.log(flux);
+                        return redis.mget(fwl_keys).then(data => {
+                            console.log(data);
                             for (let i = 0; i < keys.length; i++) {
-                                resp.flux.push({ k: keys[i], f: flux[i] || "" })
+                                resp.fwl.push({ k: keys[i], d: data[i] || "" })
                             }
                             return resp;
                         })

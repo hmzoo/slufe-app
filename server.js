@@ -65,128 +65,75 @@ if (!isProd) {
   app.use(express.static(path.join(__dirname, 'dist')));
 }
 
+const new_session = (req) => {
+ 
+  req.session.uid = uuidv4();
+  return myred.new_key(req.session.uid).then(rep => {
+    if (rep.key) {
+      req.session.key = rep.key;
+    } else {
+      delete req.session.uid; 
+    }
+    return rep;
+  });
+}
+
+const data_session = (req) => {
+  return  myred.check_key(req.session.key, req.session.uid).then(ans => {
+    if (ans) {
+     return  myred.json_data(req.session.key, "").then(rep => { return rep; })
+    } else {
+     return  new_session(req).then(rep =>{return rep;})
+    }
+  })
+}
+
+const set_session =(req,val) => {
+  return  myred.check_key(req.session.key, req.session.uid).then(ans => {
+    if (ans) {
+      return myred.set_data(req.session.key, val || "").then(rep => { return rep; })
+    } else {
+     return  new_session(req).then(rep =>{return set_session(req,val);})
+    }
+  })
+}
+
+const add_session =(req,key) => {
+  return  myred.check_key(req.session.key, req.session.uid).then(ans => {
+    if (ans) {
+     return  myred.add_key(req.session.key, key).then(rep => {console.log("REP:",rep);return rep;})
+    } else {
+     return  new_session(req).then(rep =>{return add_session(req,key);})
+    }
+  })
+}
+
+
 app.get('/hb', (req, res) => {
-  
-  if (!req.session.uid || req.query.new) { 
-    
-    if(!req.session.key_cpt){req.session.key_cpt = 0}
-    if(req.session.key_cpt<24){
-      req.session.uid = uuidv4()
-    myred.new_key(req.session.uid).then(rep =>{
-        if(rep.key){
-        req.session.key = rep.key;
-        req.session.key_cpt = req.session.key_cpt+1;
-        res.json(rep);
-        }else{
-          delete req.session.uid;
-          res.json(rep);
-        }
-      });
-    }else{
-      res.json(myred.json_err);
-    }
-     
-      }else{
-        myred.check_key(req.session.key, req.session.uid).then(ans =>{
-          if(ans){
-            myred.json_flux(req.session.key,"").then(rep=>{res.json(rep);})
-          }else{
-            delete req.session.uid;
-            delete req.session.key;
-            delete req.session.key_cpt;
-            res.json(myred.json_err);
+  if (!req.session.uid ){
+      new_session(req).then(rep =>{res.json(rep);})
+  }
+  else{
+    data_session(req).then(rep =>{res.json(rep);})
+  }
+});
 
-          }
-      })
-      }
-    });
-    
-    app.get('/set', (req, res) => {
-    if(req.session.uid&&req.session.key){
-      myred.check_key(req.session.key, req.session.uid).then(ans =>{
-        if(ans){
-          myred.set_flux(req.session.key,req.query.val).then(rep=>{
-            res.json(rep);
-          })
-        }else{
-          
-          delete req.session.uid;
-          delete req.session.key;
-          res.json(myred.json_err);
-        }
+app.get('/new', (req, res) => {
+   new_session(req).then(rep =>{res.json(rep);})
+})
 
-      })
-    } else{
-      res.json(myred.json_err);
-    }
+app.get('/set', (req, res) => {
+  set_session(req,req.query.val).then(rep =>{res.json(rep);})
+});
 
-    });
-
-    app.get('/add', (req, res) => {
-      if(req.session.uid&&req.session.key&&req.query.key){
-        myred.check_key(req.session.key, req.session.uid).then(ans =>{
-          if(req.session.last_add&&(Date.now()-req.session.last_add<5000)){
-            req.session.last_add=Date.now();
-            res.json(myred.json_err);
-          }else{
-          if(ans){
-            req.session.last_add=Date.now();
-            myred.add_flux(req.session.key,req.query.key).then(rep=>{
-              res.json(rep);
-            })
-          }else{
-            delete req.session.uid;
-            delete req.session.key;
-            res.json(myred.json_err);
-          }
-        }
-  
-        })
-      } else{
-        res.json(myred.json_err);
-      }
-  
-      });
-
-      app.get( '^/:qkey([0-9]{6})', function( req, res ) {
-        if (!req.session.uid ) { 
-          req.session.uid = uuidv4()
-          myred.new_key(req.session.uid).then(rep =>{
-              if(rep.key){
-              req.session.key = rep.key;
-              req.session.last_add=Date.now();
-              myred.add_flux(req.session.key,req.params.qkey).then(rep=>{
-                res.json(rep);
-              })
-            }else{
-                delete req.session.uid;
-                res.json(rep);
-              }
-            })
-          }else{
-            myred.check_key(req.session.key, req.session.uid).then(ans =>{
-              if(req.session.last_add&&(Date.now()-req.session.last_add<5000)){
-                req.session.last_add=Date.now();
-                res.json(myred.json_err);
-              }else{
-              if(ans){
-                req.session.last_add=Date.now();
-                myred.add_flux(req.session.key,req.params.qkey).then(rep=>{
-                  res.json(rep);
-                })
-              }else{
-                delete req.session.uid;
-                delete req.session.key;
-                res.json(myred.json_err);
-              }
-            }
-      
-            })
-
-          }
-    } );
+app.get('/add', (req, res) => {
+  add_session(req,req.query.key).then(rep =>{console.log("REP2:",rep);res.json(rep);})
+    })
 
 
+app.get('^/:qkey([0-9]{6})', function (req, res) {
+  add_session(req,req.params.qkey).then(rep =>{res.json(rep);})
+});
 
 
 const port = process.env.PORT || 5000;
