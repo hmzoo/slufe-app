@@ -110,12 +110,7 @@ const add_session =(req,key) => {
 
 
 app.get('/hb', (req, res) => {
-  if (!req.session.uid ){
-      new_session(req).then(rep =>{res.json(rep);})
-  }
-  else{
     data_session(req).then(rep =>{res.json(rep);})
-  }
 });
 
 app.get('/new', (req, res) => {
@@ -127,7 +122,7 @@ app.get('/set', (req, res) => {
 });
 
 app.get('/add', (req, res) => {
-  add_session(req,req.query.key).then(rep =>{console.log("REP2:",rep);res.json(rep);})
+  add_session(req,req.query.key).then(rep =>{res.json(rep);})
     })
 
 

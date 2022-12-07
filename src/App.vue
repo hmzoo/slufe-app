@@ -1,42 +1,54 @@
 <script setup>
-import { ref } from 'vue'
+import { ref , onMounted} from 'vue'
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 
 
 const msg = ref("no msg")
 const key = ref("")
-const keyval = ref("")
-const qkey  = ref("")
-const qkeyval  = ref("")
+const fwl = ref([])
+
+const qkey = ref("")
+const qval = ref("")
+
+const update_data =(data)=>{
+             msg.value = data.msg || "no msg";
+              key.value = data.key || "no key";
+              fwl.value = data.fwl || [];
+}
 
 
-const get_key =()=> {
-           axios.get('./key').then(res => {
-              msg.value = res.data.msg || "no msg";
-              key.value = res.data.key || "no key";
+
+const req_hb =()=> {
+           axios.get('./hb').then(res => {
+            update_data(res.data);
            })       
         }
 
-const new_key =()=> {
-           axios.get('./key',{params: { new: 1}}).then(res => {
-              msg.value = res.data.msg || "no msg";
-              key.value = res.data.key || "no key";
+const req_new =()=> {
+           axios.get('./new').then(res => {
+            update_data(res.data);
            })       
         }
 
-const set_val =()=> {
-           axios.get('./set',{ params: { val: keyval.value } }).then(res => {
-              msg.value = res.data.msg || "no msg";       
+const req_set =()=> {
+           axios.get('./set',{params: { val: qval.value}}).then(res => {
+            update_data(res.data);
            })       
         }
 
-const get_val =()=> {
-           axios.get('./get',{ params: { key: qkey.value } }).then(res => {
-              msg.value = res.data.msg || "no msg";
-              qkeyval.value = res.data.val || "no val";
+const req_add =()=> {
+           axios.get('./add',{params: { key: qkey.value}}).then(res => {
+            update_data(res.data);
            })       
         }
+
+onMounted(() => {
+   req_hb();
+  window.setInterval(() => {
+    req_hb(); 
+  }, 10000);
+});
 
 </script>
 
@@ -44,22 +56,35 @@ const get_val =()=> {
 
 <i-layout>
     <i-layout-header class="_text-align:center">
-        <h2>SLUFE APP</h2>
+           <i-container>
+    <i-row>
+        <i-column xs="6"><h2>SLUFE APP</h2></i-column><i-column xs="6"><h2>{{ key }}</h2></i-column>
+    </i-row>
+    </i-container>
+       
     </i-layout-header>
 
     <i-layout-content>
        <i-container>
     <i-row>
-        <i-column xs="3"><button @click="get_key">Get key</button></i-column><i-column xs="3"><button @click="new_key">New key</button></i-column><i-column xs="3">{{ key }}</i-column><i-column xs="3"><i-column xs="3">{{ keyval }}</i-column></i-column>
+        <i-column xs="1"><button @click="req_hb">HB</button></i-column><i-column xs="1"><button @click="req_new">NEW</button></i-column><i-column xs="5">{{ msg }}</i-column>
+  
+        <i-column xs="4"><i-input v-model="qval" placeholder="set val .." /></i-column><i-column xs="1"><button @click="req_set">Set val</button></i-column>
     </i-row>
-   <i-row>
-        <i-column xs="4"><i-input v-model="keyval" placeholder="set val .." /></i-column><i-column xs="4"><button @click="set_val">Set val</button></i-column><i-column xs="4"></i-column>
+    <i-row>
+    <i-column xs="4"><i-input v-model="qkey" placeholder="key .." /></i-column><i-column xs="1"><button @click="req_add">ADD</button></i-column>
     </i-row>
-        <i-row>
-        <i-column xs="4"><i-input v-model="qkey" placeholder="qet qval.." /></i-column><i-column xs="4"><button @click="get_val">Get val</button></i-column><i-column xs="4">{{ qkeyval }}</i-column>
-    </i-row>
-   <i-row>
-        <i-column xs="6">msg : </i-column><i-column xs="6">{{ msg }}</i-column>
+    <i-row>
+       <i-column xs="12">
+       {{ fwl }}
+       <i-table>
+      <tbody>
+       <tr v-for="item in fwl">
+       <th>{{item.k}}</th><td>{{item.d}}</td>
+       </tr>
+      </tbody>
+       </i-table>
+       </i-column>    
     </i-row>
     </i-container>
     </i-layout-content>

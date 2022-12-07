@@ -27,7 +27,11 @@ const myred = {
         })
     },
     check_key: (key, uid)=>{
+        if(key && uid) {
         return redis.get("uid_" + key).then(ans => ans == uid)
+        }else{
+            return Promise.resolve(false);
+        }
     },
     reset_key: (key, uid)=>{
         redis.del("data_" + key);
