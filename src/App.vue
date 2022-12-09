@@ -1,23 +1,51 @@
 <script setup>
 import { ref , onMounted} from 'vue'
 import axios from 'axios';
+import Peer from 'peerjs';
+
 axios.defaults.withCredentials = true;
 
+let myPeer = null;
 
-const msg = ref("no msg")
-const key = ref("")
-const fwl = ref([])
+const cxns =ref([]);
 
-const qkey = ref("")
-const qval = ref("")
+const msg = ref("no msg");
+const key = ref("");
+const fwl = ref([]);
+
+const qkey = ref("");
+const qval = ref("");
 
 const update_data =(data)=>{
              msg.value = data.msg || "no msg";
               key.value = data.key || "no key";
               fwl.value = data.fwl || [];
+
+              
 }
 
+const connect_peer =(id) => {
+   if (id) {
+            init_cxn(myPeer.connect(id));
+          }
+}
 
+const init_cxn = (cxn)=>{
+            console.log('connection', cxn)
+            cxn.on('open', () => {
+              console.log(cxn.peer,"open");
+              cxn.send("hello")
+            })
+            cxn.on('data', (data) => {
+              console.log("data",cxn.peer,data);
+            })
+            cxn.on('close', () => {
+              console.log(cxn.peer,"close");
+            })
+             cxn.on('error', (error) => {
+              console.log("error",cxn.peer,error);
+            })
+}
 
 const req_hb =()=> {
            axios.get('./hb').then(res => {
@@ -50,6 +78,18 @@ onMounted(() => {
   }, 10000);
 });
 
+myPeer = new Peer()
+        myPeer.on('open', (id) => {
+          console.log('Connected at PeerJS server with success')
+          console.log('this.myPeer.id: ' + myPeer.id + ' this.myPeer.key: ' + myPeer.key)
+          console.log('My peer ID is: ' + id);
+          qval.value=id;
+          req_set();
+        })
+        myPeer.on('connection', (cxn) => {
+         init_cxn(cxn);
+        })
+
 </script>
 
 <template>
@@ -80,7 +120,19 @@ onMounted(() => {
        <i-table>
       <tbody>
        <tr v-for="item in fwl">
-       <th>{{item.k}}</th><td>{{item.d}}</td>
+       <th>{{item.k}}</th><td>{{item.d}}</td><td><button @click="connect_peer(item.d)">CONNECT</button></td>
+       </tr>
+      </tbody>
+       </i-table>
+       </i-column>    
+    </i-row>
+        <i-row>
+       <i-column xs="12">
+       {{ fwl }}
+       <i-table>
+      <tbody>
+       <tr v-for="item in cxns">
+       <th>{{item.peer}}</th><td></td>
        </tr>
       </tbody>
        </i-table>
