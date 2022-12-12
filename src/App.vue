@@ -19,19 +19,22 @@ const qval = ref("");
 const update_data =(data)=>{
              msg.value = data.msg || "no msg";
               key.value = data.key || "no key";
-              fwl.value = data.fwl || [];
-
+              fwl.value = data.fwl || []; 
               
 }
 
-const connect_peer =(id) => {
+const connect_peer =(id,keynum) => {
    if (id) {
-            init_cxn(myPeer.connect(id));
+            init_cxn(myPeer.connect(id,{label:keynum}),keynum);
           }
 }
 
-const init_cxn = (cxn)=>{
+const init_cxn = (cxn,keynum="ME")=>{
             console.log('connection', cxn)
+            cxn.keynum = keynum;
+            console.log("PC",cxn.peerConnection)
+            cxns.value.push(cxn)
+            cxn.ready = ()=>{ return cxn.peerConnection && (cxn.peerConnection.connectionState == "connected")}
             cxn.on('open', () => {
               console.log(cxn.peer,"open");
               cxn.send("hello")
@@ -120,23 +123,25 @@ myPeer = new Peer()
        <i-table>
       <tbody>
        <tr v-for="item in fwl">
-       <th>{{item.k}}</th><td>{{item.d}}</td><td><button @click="connect_peer(item.d)">CONNECT</button></td>
+       <th>{{item.k}}</th><td>{{item.d}}</td><td><button @click="connect_peer(item.d,item.k)">CONNECT</button></td>
        </tr>
       </tbody>
        </i-table>
        </i-column>    
     </i-row>
-        <i-row>
-       <i-column xs="12">
-       {{ fwl }}
-       <i-table>
-      <tbody>
-       <tr v-for="item in cxns">
-       <th>{{item.peer}}</th><td></td>
-       </tr>
-      </tbody>
-       </i-table>
+        <i-row v-for="item in cxns" >
+      <i-column xs="2">
+       {{ item.keynum}}
+       </i-column>  
+       <i-column xs="2">
+       {{ item.label}}
+       </i-column> 
+       <i-column xs="4">
+       {{ item.peer}}
        </i-column>    
+       <i-column xs="4">
+       {{ item.ready()}}
+       </i-column>  
     </i-row>
     </i-container>
     </i-layout-content>

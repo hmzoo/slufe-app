@@ -5,7 +5,7 @@ const redis = new Redis({
     port: 6379,
 });
 
-const ttl = 360;
+const ttl = 60*30;
 const rankey = () => { return "" + (100000 + Math.floor(Math.random() * 900000)); }
 
 
