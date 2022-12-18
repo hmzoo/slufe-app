@@ -6,8 +6,9 @@ import Peer from 'peerjs';
 axios.defaults.withCredentials = true;
 
 let myPeer = null;
-
-const cxns =ref([]);
+const cxns =[];
+let cxn_cpt =0;
+const cxns_infos =ref([]);
 
 const msg = ref("no msg");
 const key = ref("");
@@ -20,33 +21,66 @@ const update_data =(data)=>{
              msg.value = data.msg || "no msg";
               key.value = data.key || "no key";
               fwl.value = data.fwl || []; 
-              
+              refresh_cxns_infos();
+              if(myPeer){
+                console.log("MYPEER",myPeer.connections)
+              }
 }
 
-const connect_peer =(id,keynum) => {
+const refresh_cxns_infos=()=>{
+  cxns_infos.value=[]
+  for(let i=0;i<cxns.length;i++){
+     cxns_infos.value.push({
+      peer:cxns[i].peer,
+      keynum:getnumfromcxn(cxns[i]),
+      open:cxns[i].open,
+      cpt:cxns[i].cpt
+      })
+  }
+}
+
+const getnumfromcxn =(cxn) => {
+  console.log("CXN PEER",cxn.peer)
+  for (let i=0;i<fwl.value.length;i++) {
+    if (cxn.peer == fwl.value[i].d){
+      return fwl.value[i].k
+    }
+  }
+  return "UNKNOWN"
+}
+
+const connect_peer =(id) => {
    if (id) {
-            init_cxn(myPeer.connect(id,{label:keynum}),keynum);
+            init_cxn(myPeer.connect(id,{label:"CXN"}));
           }
 }
 
-const init_cxn = (cxn,keynum="ME")=>{
+const init_cxn = (cxn)=>{
             console.log('connection', cxn)
-            cxn.keynum = keynum;
-            console.log("PC",cxn.peerConnection)
-            cxns.value.push(cxn)
-            cxn.ready = ()=>{ return cxn.peerConnection && (cxn.peerConnection.connectionState == "connected")}
+            
+            console.log("PC",cxn.peerConnection);
+            cxn_cpt++;
+            cxn.cpt = cxn_cpt;
+            cxns.push(cxn)
+            
             cxn.on('open', () => {
               console.log(cxn.peer,"open");
+              cxn.keynum = getnumfromcxn(cxn);
+              
               cxn.send("hello")
+              refresh_cxns_infos();
             })
             cxn.on('data', (data) => {
               console.log("data",cxn.peer,data);
+              refresh_cxns_infos();
             })
             cxn.on('close', () => {
               console.log(cxn.peer,"close");
+              refresh_cxns_infos();
             })
              cxn.on('error', (error) => {
               console.log("error",cxn.peer,error);
+              refresh_cxns_infos();
             })
 }
 
@@ -129,7 +163,10 @@ myPeer = new Peer()
        </i-table>
        </i-column>    
     </i-row>
-        <i-row v-for="item in cxns" >
+        <i-row v-for="item in cxns_infos" >
+        <i-column xs="2">
+       {{ item.cpt}}
+       </i-column>  
       <i-column xs="2">
        {{ item.keynum}}
        </i-column>  
@@ -139,8 +176,8 @@ myPeer = new Peer()
        <i-column xs="4">
        {{ item.peer}}
        </i-column>    
-       <i-column xs="4">
-       {{ item.ready()}}
+       <i-column xs="2">
+       {{ item.open}}
        </i-column>  
     </i-row>
     </i-container>
