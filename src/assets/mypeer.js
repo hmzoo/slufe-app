@@ -1,4 +1,4 @@
-
+import Peer from 'peerjs';
 let peer =null
 const cxns =[];
 let cxn_cpt =0;

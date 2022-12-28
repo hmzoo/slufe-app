@@ -22,9 +22,7 @@ const update_data =(data)=>{
               key.value = data.key || "no key";
               fwl.value = data.fwl || []; 
               refresh_cxns_infos();
-              if(myPeer){
-                console.log("MYPEER",myPeer.connections)
-              }
+
 }
 
 const refresh_cxns_infos=()=>{
@@ -168,10 +166,10 @@ myPeer = new Peer()
        {{ item.cpt}}
        </i-column>  
       <i-column xs="2">
-       {{ item.keynum}}
+       <b>{{ item.keynum}}</b>
        </i-column>  
        <i-column xs="2">
-       {{ item.label}}
+      <small> {{ item.label}} </small>
        </i-column> 
        <i-column xs="4">
        {{ item.peer}}
