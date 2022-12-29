@@ -84,8 +84,6 @@ const init_cxn = (cxn)=>{
             })
 }
 
-
-
 onMounted(() => {
    keynum.hb();
   window.setInterval(() => {
