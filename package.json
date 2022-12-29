@@ -28,6 +28,7 @@
     "express-session": "^1.17.3",
     "ioredis": "^5.2.4",
     "peerjs": "^1.4.7",
+    "pinia": "^2.0.28",
     "uuid": "^9.0.0",
     "vue": "^3.2.45",
     "vue-axios": "^3.5.2"

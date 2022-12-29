@@ -2,8 +2,10 @@
 import { ref , onMounted} from 'vue'
 import axios from 'axios';
 import Peer from 'peerjs';
-
 axios.defaults.withCredentials = true;
+import { useKeyNumStore } from '@/stores/keynum'
+
+const keynum = useKeyNumStore()
 
 let myPeer = null;
 const cxns =[];
@@ -19,8 +21,8 @@ const qval = ref("");
 
 const update_data =(data)=>{
              msg.value = data.msg || "no msg";
-              key.value = data.key || "no key";
-              fwl.value = data.fwl || []; 
+             key.value = data.key || "no key";
+             fwl.value = data.fwl || []; 
               refresh_cxns_infos();
 
 }
@@ -82,44 +84,18 @@ const init_cxn = (cxn)=>{
             })
 }
 
-const req_hb =()=> {
-           axios.get('./hb').then(res => {
-            update_data(res.data);
-           })       
-        }
 
-const req_new =()=> {
-           axios.get('./new').then(res => {
-            update_data(res.data);
-           })       
-        }
-
-const req_set =()=> {
-           axios.get('./set',{params: { val: qval.value}}).then(res => {
-            update_data(res.data);
-           })       
-        }
-
-const req_add =()=> {
-           axios.get('./add',{params: { key: qkey.value}}).then(res => {
-            update_data(res.data);
-           })       
-        }
 
 onMounted(() => {
-   req_hb();
+   keynum.hb();
   window.setInterval(() => {
-    req_hb(); 
+    keynum.hb(); 
   }, 10000);
 });
 
 myPeer = new Peer()
         myPeer.on('open', (id) => {
-          console.log('Connected at PeerJS server with success')
-          console.log('this.myPeer.id: ' + myPeer.id + ' this.myPeer.key: ' + myPeer.key)
-          console.log('My peer ID is: ' + id);
-          qval.value=id;
-          req_set();
+          keynum.set(id);
         })
         myPeer.on('connection', (cxn) => {
          init_cxn(cxn);
@@ -133,7 +109,7 @@ myPeer = new Peer()
     <i-layout-header class="_text-align:center">
            <i-container>
     <i-row>
-        <i-column xs="6"><h2>SLUFE APP</h2></i-column><i-column xs="6"><h2>{{ key }}</h2></i-column>
+        <i-column xs="6"><h2>SLUFE APP</h2></i-column><i-column xs="6"><h2>{{ keynum.key }}</h2></i-column>
     </i-row>
     </i-container>
        
@@ -142,19 +118,19 @@ myPeer = new Peer()
     <i-layout-content>
        <i-container>
     <i-row>
-        <i-column xs="1"><button @click="req_hb">HB</button></i-column><i-column xs="1"><button @click="req_new">NEW</button></i-column><i-column xs="5">{{ msg }}</i-column>
+        <i-column xs="1"><button @click="keynum.hb()">HB</button></i-column><i-column xs="1"><button @click="keynum.renew()">NEW</button></i-column><i-column xs="5">{{ keynum.msg }}</i-column>
   
-        <i-column xs="4"><i-input v-model="qval" placeholder="set val .." /></i-column><i-column xs="1"><button @click="req_set">Set val</button></i-column>
+        <i-column xs="4"><i-input v-model="qval" placeholder="set val .." /></i-column><i-column xs="1"><button @click="keynum.set(qval)">Set val</button></i-column>
     </i-row>
     <i-row>
-    <i-column xs="4"><i-input v-model="qkey" placeholder="key .." /></i-column><i-column xs="1"><button @click="req_add">ADD</button></i-column>
+    <i-column xs="4"><i-input v-model="qkey" placeholder="key .." /></i-column><i-column xs="1"><button @click="keynum.add(qkey)">ADD</button></i-column>
     </i-row>
     <i-row>
        <i-column xs="12">
-       {{ fwl }}
+       {{ keynum.fwl }}
        <i-table>
       <tbody>
-       <tr v-for="item in fwl">
+       <tr v-for="item in keynum.fwl">
        <th>{{item.k}}</th><td>{{item.d}}</td><td><button @click="connect_peer(item.d,item.k)">CONNECT</button></td>
        </tr>
       </tbody>
