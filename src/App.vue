@@ -1,16 +1,20 @@
 <script setup>
-import { ref , onMounted} from 'vue'
-import axios from 'axios';
-import Peer from 'peerjs';
-axios.defaults.withCredentials = true;
+import { ref , onMounted,watch } from 'vue'
+
+
+
 import { useKeyNumStore } from '@/stores/keynum'
+import { useMyPeerStore } from '@/stores/mypeer'
 
 const keynum = useKeyNumStore()
+const mypeer = useMyPeerStore()
 
-let myPeer = null;
-const cxns =[];
-let cxn_cpt =0;
-const cxns_infos =ref([]);
+watch( ()=>mypeer.peerid,(data) =>{
+  console.log('some changed', data)
+  keynum.set(data)
+})
+
+
 
 const msg = ref("no msg");
 const key = ref("");
@@ -27,62 +31,7 @@ const update_data =(data)=>{
 
 }
 
-const refresh_cxns_infos=()=>{
-  cxns_infos.value=[]
-  for(let i=0;i<cxns.length;i++){
-     cxns_infos.value.push({
-      peer:cxns[i].peer,
-      keynum:getnumfromcxn(cxns[i]),
-      open:cxns[i].open,
-      cpt:cxns[i].cpt
-      })
-  }
-}
 
-const getnumfromcxn =(cxn) => {
-  console.log("CXN PEER",cxn.peer)
-  for (let i=0;i<fwl.value.length;i++) {
-    if (cxn.peer == fwl.value[i].d){
-      return fwl.value[i].k
-    }
-  }
-  return "UNKNOWN"
-}
-
-const connect_peer =(id) => {
-   if (id) {
-            init_cxn(myPeer.connect(id,{label:"CXN"}));
-          }
-}
-
-const init_cxn = (cxn)=>{
-            console.log('connection', cxn)
-            
-            console.log("PC",cxn.peerConnection);
-            cxn_cpt++;
-            cxn.cpt = cxn_cpt;
-            cxns.push(cxn)
-            
-            cxn.on('open', () => {
-              console.log(cxn.peer,"open");
-              cxn.keynum = getnumfromcxn(cxn);
-              
-              cxn.send("hello")
-              refresh_cxns_infos();
-            })
-            cxn.on('data', (data) => {
-              console.log("data",cxn.peer,data);
-              refresh_cxns_infos();
-            })
-            cxn.on('close', () => {
-              console.log(cxn.peer,"close");
-              refresh_cxns_infos();
-            })
-             cxn.on('error', (error) => {
-              console.log("error",cxn.peer,error);
-              refresh_cxns_infos();
-            })
-}
 
 onMounted(() => {
    keynum.hb();
@@ -91,13 +40,7 @@ onMounted(() => {
   }, 10000);
 });
 
-myPeer = new Peer()
-        myPeer.on('open', (id) => {
-          keynum.set(id);
-        })
-        myPeer.on('connection', (cxn) => {
-         init_cxn(cxn);
-        })
+
 
 </script>
 
@@ -135,21 +78,9 @@ myPeer = new Peer()
        </i-table>
        </i-column>    
     </i-row>
-        <i-row v-for="item in cxns_infos" >
-        <i-column xs="2">
-       {{ item.cpt}}
-       </i-column>  
-      <i-column xs="2">
-       <b>{{ item.keynum}}</b>
-       </i-column>  
-       <i-column xs="2">
-      <small> {{ item.label}} </small>
-       </i-column> 
-       <i-column xs="4">
-       {{ item.peer}}
-       </i-column>    
-       <i-column xs="2">
-       {{ item.open}}
+    <i-row>
+       <i-column>
+       {{ mypeer.peerid}}
        </i-column>  
     </i-row>
     </i-container>
