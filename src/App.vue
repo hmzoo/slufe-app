@@ -12,6 +12,7 @@ const mypeer = useMyPeerStore()
 watch( ()=>mypeer.peerid,(data) =>{
   console.log('some changed', data)
   keynum.set(data)
+  mypeer.set_keynum(keynum.key)
 })
 
 
@@ -23,13 +24,7 @@ const fwl = ref([]);
 const qkey = ref("");
 const qval = ref("");
 
-const update_data =(data)=>{
-             msg.value = data.msg || "no msg";
-             key.value = data.key || "no key";
-             fwl.value = data.fwl || []; 
-              refresh_cxns_infos();
 
-}
 
 
 
@@ -47,10 +42,10 @@ onMounted(() => {
 <template>
 
 <i-layout>
-    <i-layout-header class="_text-align:center">
-           <i-container>
-    <i-row>
-        <i-column xs="6"><h2>SLUFE APP</h2></i-column><i-column xs="6"><h2>{{ keynum.key }}</h2></i-column>
+    <i-layout-header class="_background:dark">
+           <i-container color="dark">
+    <i-row middle>
+        <i-column xs="2" ><b>SLUFE APP</b></i-column><i-column xs="1"><b>{{ keynum.key }}</b></i-column><i-column xs="1"><i-button @click="keynum.renew()" size="sm" >RENEW KEY</i-button></i-column><i-column xs="3"> <small>{{ mypeer.peerid}}</small><br/><small>{{ keynum.msg}}</small></i-column><i-column xs="2"><i-input v-model="qkey" placeholder="key .." type="text" size="sm"><template #append><i-button @click="keynum.add(qkey)" size="sm">ADD</i-button></template></i-input></i-column>
     </i-row>
     </i-container>
        
@@ -58,31 +53,31 @@ onMounted(() => {
 
     <i-layout-content>
        <i-container>
+
+
     <i-row>
-        <i-column xs="1"><button @click="keynum.hb()">HB</button></i-column><i-column xs="1"><button @click="keynum.renew()">NEW</button></i-column><i-column xs="5">{{ keynum.msg }}</i-column>
-  
-        <i-column xs="4"><i-input v-model="qval" placeholder="set val .." /></i-column><i-column xs="1"><button @click="keynum.set(qval)">Set val</button></i-column>
-    </i-row>
-    <i-row>
-    <i-column xs="4"><i-input v-model="qkey" placeholder="key .." /></i-column><i-column xs="1"><button @click="keynum.add(qkey)">ADD</button></i-column>
-    </i-row>
-    <i-row>
-       <i-column xs="12">
-       {{ keynum.fwl }}
-       <i-table>
+       <i-column xs="12"> 
+       <i-table border>
       <tbody>
        <tr v-for="item in keynum.fwl">
-       <th>{{item.k}}</th><td>{{item.d}}</td><td><button @click="connect_peer(item.d,item.k)">CONNECT</button></td>
+       <th>{{item.k}}</th><td>{{item.d}}</td><td><i-button @click="mypeer.connect(item.d)" size="sm">CONNECT</i-button></td>
        </tr>
       </tbody>
        </i-table>
        </i-column>    
     </i-row>
-    <i-row>
-       <i-column>
-       {{ mypeer.peerid}}
-       </i-column>  
+        <i-row>
+       <i-column xs="12"> 
+       <i-table border>
+      <tbody>
+       <tr v-for="item in mypeer.connections">
+       <th>{{item.keynum}}</th><td>{{item.cxnid}} </td><td>{{item.peerid}}</td>
+       </tr>
+      </tbody>
+       </i-table>
+       </i-column>    
     </i-row>
+
     </i-container>
     </i-layout-content>
 </i-layout>
