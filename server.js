@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(session(
   {
     name: "slufe",
-    store: new RedisStore({ client: redisClient }),
+    store: new RedisStore({ client: redisClient ,ttl: 86400000}),
     saveUninitialized: false,
     resave: false,
     secret: "zQleLeWoJly1OSFF",
