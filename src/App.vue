@@ -1,5 +1,6 @@
 <script setup>
 import { ref , onMounted,watch } from 'vue'
+import Chat from './components/Chat.vue';
 
 
 
@@ -23,6 +24,8 @@ const fwl = ref([]);
 
 const qkey = ref("");
 const qval = ref("");
+
+const qmsg = ref("");
 
 
 
@@ -75,6 +78,12 @@ onMounted(() => {
        </tr>
       </tbody>
        </i-table>
+       </i-column>    
+    </i-row>
+            <i-row>
+       <i-column xs="12">
+       <Chat :messages="mypeer.messages" />
+       <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
        </i-column>    
     </i-row>
 

@@ -16,10 +16,11 @@ myPeer.on('open', (id) => {
 })
 
 const connect_peer =(id) => {
-    if (id) {
-             init_cxn(myPeer.connect(id));
-           }
+    
  }
+
+
+
 
 const init_cxn = (cxn)=>{
     console.log('connection', cxn)
@@ -27,12 +28,16 @@ const init_cxn = (cxn)=>{
     useMyPeerStore().new_connection(cxn.peer,cxn.connectionId)
     cxn.on('open', () => {
       console.log(cxn.peer,"open");
+      cxns.push(cxn)
       cxn.send({keynum:useMyPeerStore().keynum})
     })
     cxn.on('data', (data) => {
       console.log("data",cxn.peer,data);
       if(data.keynum){
         useMyPeerStore().set_cxn_keynum(cxn.connectionId,data.keynum)
+      }
+      if(data.msg){
+        useMyPeerStore().new_message(data.keynum,data.msg,false)
       }
     })
     cxn.on('close', () => {
@@ -50,11 +55,23 @@ export const useMyPeerStore = defineStore('mypeer',{
     state: () => ({
         keynum: "",
         peerid: "",
-        connections: []
+        connections: [],
+        messages: []
     }),
     actions: {
         connect(id){  
-            connect_peer(id); 
+            if (id) {
+                init_cxn(myPeer.connect(id));
+              } 
+        },
+        send_message(msg){
+            useMyPeerStore().new_message(this.keynum,msg,true);
+            for(let i=0;i<cxns.length;i++){
+                if(cxns[i].open){
+                    cxns[i].send({keynum:this.keynum,msg:msg})
+                }
+            }
+
         },
         set_keynum(k){  
             this.keynum=k;     
@@ -64,6 +81,9 @@ export const useMyPeerStore = defineStore('mypeer',{
         },
         new_connection(peerid,cxnid){
             this.connections.push({peerid:peerid,cxnid:cxnid,keynum:"000000"})
+        },
+        new_message(keynum,msg,me){
+                    this.messages.push({keynum:keynum,msg:msg,me:me})
         },
         set_cxn_keynum(cxnid,keynum){
         for(let i=0;i<this.connections.length;i++){
