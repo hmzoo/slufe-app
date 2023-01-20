@@ -17,23 +17,23 @@ export const useKeyNumStore = defineStore('keynum',{
             this.fwl = data.fwl || []; 
         },
         hb(){
-            axios.get('./hb').then(res => {
+            axios.get('/hb').then(res => {
                 this.update_data(res.data);           
                })  
         },
         renew() {
-            axios.get('./new').then(res => {
+            axios.get('/new').then(res => {
              this.update_data(res.data);
             })       
          },
          set(v){
-            axios.get('./set',{params: { val: v}}).then(res => {
+            axios.get('/set',{params: { val: v}}).then(res => {
              this.update_data(res.data);
             })       
          },
          add(k){
             console.log("ADD",k)
-                axios.get('./add',{params: { key: k}}).then(res => {
+                axios.get('/add',{params: { key: k}}).then(res => {
                  this.update_data(res.data);
                 })       
              }

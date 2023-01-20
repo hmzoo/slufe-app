@@ -1,6 +1,7 @@
 <script setup>
 import { ref , onMounted,watch } from 'vue'
 import Chat from './components/Chat.vue';
+import Camera from './components/Camera.vue';
 
 
 
@@ -81,10 +82,13 @@ onMounted(() => {
        </i-column>    
     </i-row>
             <i-row>
-       <i-column xs="12">
+       <i-column xs="6">
        <Chat :messages="mypeer.messages" />
        <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
        </i-column>    
+       <i-column xs="6">
+       <Camera />
+       </i-column>
     </i-row>
 
     </i-container>

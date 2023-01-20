@@ -1,24 +1,28 @@
 # slufe-app
 
-## API
-uid:
-key:
-val:
+## traefik
 
-### key()
+~~~bash
+wget https://github.com/traefik/traefik/releases/download/v2.9.6/traefik_v2.9.6_linux_amd64.tar.gz
+tar -zxf traefik_v2.9.6_linux_amd64.tar.gz
 
-retourne key et uid
-
-### set_val(uid,key,val) 
-
-si l'index uid == key alors 
-change l'index key en val
+traefik traefik --configFile=traefik.yml
+~~~
 
 
-### get_val(key)
+~~~bash
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+      [[entryPoints.https.tls.certificates]]
+      certFile= /etc/ssl/certs/ssl-cert-snakeoil.pem
+      keyFile= /etc/ssl/private/ssl-cert-snakeoil.key
 
-retourne val
 
+~~~
 
 
 
