@@ -15,9 +15,7 @@ myPeer.on('open', (id) => {
        })
 })
 
-const connect_peer =(id) => {
-    
- }
+
 
 
 

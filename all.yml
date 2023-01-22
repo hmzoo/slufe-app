@@ -1,0 +1,13 @@
+http:
+  routers:
+    router0:
+      rule: Host(`hmdev.mshome.net`)
+      entrypoints : 
+        - websecure
+      service: slufe
+      tls: {}
+  services:
+    slufe:
+      loadbalancer:
+        servers:
+          - url: 'http://localhost:5000'

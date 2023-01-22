@@ -8,58 +8,44 @@ const props = defineProps({
 	camon: Boolean,
     micon:Boolean
 })
-const camon=ref(false)
-const micon=ref(false)
 
-const stream = ref(null)
-const constraints = {
-  audio: false,
-  video: {
-    width: { min: 1024, ideal: 1280, max: 1920 },
-    height: { min: 576, ideal: 720, max: 1080 },
-    facingMode: 'environment',
-  },
-}
 
-const stop = () => {
-  stream.value.getTracks().forEach(track => {
-    console.log('stopping', track)
-    track.stop()
-  })
-  stream.value = null
-}
 
-const play = () => {
-    navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then(s => {
-            console.log('streaming', s)
-          stream.value = s;
-        })
-        .catch(error => {
-          alert(error, "May the browser didn't support or there is some errors.")
-        })
-}
-
-const toggleCam=()=>{
-   camon.value=!camon.value;
-   console.log(camon.value)
-}
 
 onMounted(() => {
-    media.getDevices();
-    play()
+  
+    media.start();
     })
-onBeforeUnmount(() => stop())
+onBeforeUnmount(() => media.stop())
 </script>
 
 <template>
   <div>
-  <video :srcObject="stream" width="300" height="200" autoplay></video>
-  <div>
-    <button v-if="stream" @click="stop"><img src="@/assets/icons/disab-cam.svg" /></button>
-    <button v-else @click="play"><img src="@/assets/icons/enab-cam.svg" /></button>
+  <video :srcObject="media.stream" width="300" height="200" autoplay></video>
+  <div v-if="media.stream">
+  {{media.stream.id}}
   </div>
-  {{ media.audioDevices }}
+  <div>
+    <i-button @click="media.switchcam" size="sm">
+    <img src="@/assets/icons/enab-cam.png" v-if="media.camera.beOn"/>
+    <img src="@/assets/icons/disab-cam.png" v-else  />
+    </i-button>
+    <i-button @click="media.swapcam" size="sm"><img src="@/assets/icons/swap.png" /></i-button>
+    <span>{{ media.camera.label}}</span>
+  </div>
+  <div>
+    <i-button @click="media.switchmic" size="sm">
+    <img src="@/assets/icons/enab-mic.png" v-if="media.micro.beOn"  />
+    <img src="@/assets/icons/disab-mic.png" v-else />
+    </i-button>
+    <i-button @click="media.swapmic" size="sm"><img src="@/assets/icons/swap.png" /></i-button>
+    <span>{{ media.micro.label}}</span>
+  </div>
+  {{ media.camera }}<br/>
+  {{ media.videoDevices}}<br/>
+  {{ media.audioDevices}}
+  </div>
+  <div>
+  {{ media.getConstrains}}
   </div>
 </template>
