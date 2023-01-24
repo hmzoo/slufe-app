@@ -46,6 +46,6 @@ onBeforeUnmount(() => media.stop())
   {{ media.audioDevices}}
   </div>
   <div>
-  {{ media.getConstrains}}
+  {{ media.constrains}}
   </div>
 </template>

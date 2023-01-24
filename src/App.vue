@@ -7,14 +7,21 @@ import Camera from './components/Camera.vue';
 
 import { useKeyNumStore } from '@/stores/keynum'
 import { useMyPeerStore } from '@/stores/mypeer'
+import { useMediaStore } from '@/stores/media'
 
 const keynum = useKeyNumStore()
 const mypeer = useMyPeerStore()
+const media = useMediaStore()
 
 watch( ()=>mypeer.peerid,(data) =>{
   console.log('some changed', data)
   keynum.set(data)
   mypeer.set_keynum(keynum.key)
+})
+
+watch( ()=>media.stream,(data) =>{
+  console.log('media', data)
+  mypeer.set_mystream(data);
 })
 
 
@@ -64,7 +71,9 @@ onMounted(() => {
        <i-table border>
       <tbody>
        <tr v-for="item in keynum.fwl">
-       <th>{{item.k}}</th><td>{{item.d}}</td><td><i-button @click="mypeer.connect(item.d)" size="sm">CONNECT</i-button></td>
+       <th>{{item.k}}</th><td>{{item.d}}</td>
+       <td><i-button @click="mypeer.connect(item.d)" size="sm">CONNECT</i-button></td>
+       <td><i-button @click="mypeer.call(item.d,media.stream)" size="sm">CALL</i-button></td>
        </tr>
       </tbody>
        </i-table>

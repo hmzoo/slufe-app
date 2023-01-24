@@ -13,6 +13,13 @@ myPeer.on('open', (id) => {
     myPeer.on('connection', (cxn) => {
         init_cxn(cxn);
        })
+    myPeer.on('call', (call) => {
+        init_call(call);
+        call.answer(useMyPeerStore().mystream)
+       })
+    myPeer.on('error', (err) => {
+        console;log("PEER ERR : ",err);
+       })
 })
 
 
@@ -46,6 +53,16 @@ const init_cxn = (cxn)=>{
     })
 }
 
+const init_call =(call)=>{
+    console.log("CALL",call)
+    call.on('stream',(stream =>{
+       console.log("S",stream)
+    }))
+    call.on('close',()=>{})
+    call.on('error',(err)=>{})
+
+}
+
 
 
 export const useMyPeerStore = defineStore('mypeer',{
@@ -54,13 +71,25 @@ export const useMyPeerStore = defineStore('mypeer',{
         keynum: "",
         peerid: "",
         connections: [],
-        messages: []
+        messages: [],
+        mystream: null,
+        streams: []
     }),
     actions: {
         connect(id){  
             if (id) {
                 init_cxn(myPeer.connect(id));
               } 
+        },
+        call(id,stream){  
+            if (id) {
+                let c= myPeer.call(id,stream);
+                console.log("C",c,"P",myPeer)
+                init_call(c);
+              } 
+        },
+        set_mystream(stream){
+            this.mystream=stream
         },
         send_message(msg){
             useMyPeerStore().new_message(this.keynum,msg,true);
