@@ -73,7 +73,7 @@ onMounted(() => {
        <tr v-for="item in keynum.fwl">
        <th>{{item.k}}</th><td>{{item.d}}</td>
        <td><i-button @click="mypeer.connect(item.d)" size="sm">CONNECT</i-button></td>
-       <td><i-button @click="mypeer.call(item.d,media.stream)" size="sm">CALL</i-button></td>
+       <td><i-button @click="mypeer.call(item.d)" size="sm">CALL</i-button></td>
        </tr>
       </tbody>
        </i-table>
@@ -90,7 +90,7 @@ onMounted(() => {
        </i-table>
        </i-column>    
     </i-row>
-            <i-row>
+       <i-row>
        <i-column xs="6">
        <Chat :messages="mypeer.messages" />
        <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
@@ -98,6 +98,18 @@ onMounted(() => {
        <i-column xs="6">
        <Camera />
        </i-column>
+    </i-row>
+    
+        <i-row>
+       <i-column xs="12"> 
+       <i-table border>
+      <tbody>
+       <tr v-for="item in mypeer.calls">
+       <th>{{item.keynum}}</th><td>{{item.peerid}}</td><td><video :srcObject="item.stream" width="160" height="100" autoplay></video></td>
+       </tr>
+      </tbody>
+       </i-table>
+       </i-column>    
     </i-row>
 
     </i-container>
