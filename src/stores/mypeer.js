@@ -4,61 +4,201 @@ import Peer from 'peerjs';
 
 
 let myPeer = null;
+let peers =[];
+let connections =[];
+let calls =[];
+let messages =[];
+let mystream = new MediaStream();
+let mykeynum = "000000"
 
+const new_peer= (id)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    if(index < 0){
+    peers.push({id:id,keynum:"000000",stream:new MediaStream(),message:""})
+    }
+    useMyPeerStore().update_peers(peers);
+}
+
+const remove_peer= (id)=>{
+    remove_connection(id);
+    remove_call(id);
+    peers = peers.filter(function( obj ) {
+        return obj.id !== id;
+    });
+    useMyPeerStore().update_peers(peers);
+}
+
+const get_my_keynum =()=>{ return mykeynum;}
+const set_my_keynum =(k)=>{  mykeynum = k;}
+
+const get_my_stream =()=>{ return mystream;}
+const set_my_stream =(s)=>{  mystream = s;}
+
+const peer_exists=(id)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    return index !=-1
+}
+const connection_exists=(id)=>{
+    var index = connections.map(function(e) { return e.id; }).indexOf(id);
+    return index !=-1 && connections[index].open
+}
+
+const call_exists=(id)=>{
+    var index = calls.map(function(e) { return e.id; }).indexOf(id);
+    return index !=-1 && calls[index].open
+}
+
+const get_peer_keynum =(id)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    if(index < 0){
+    return "000000";
+    }
+    return peers[index].keynum;
+}
+
+const set_peer_keynum =(id,keynum)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    if(index >= 0){
+      peers[index].keynum=keynum
+      useMyPeerStore().update_peers(peers);
+    }
+}
+
+const set_peer_stream =(id,stream)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    if(index >= 0){
+      peers[index].stream=stream
+      useMyPeerStore().update_peers(peers);
+    }
+}
+
+const set_peer_msg =(id,msg)=>{
+    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    if(index >= 0){
+      peers[index].message=msg
+      useMyPeerStore().update_peers(peers);
+    }
+}
+
+const new_message=(keynum,msg,cat)=>{
+  messages.push({keynum:keynum,msg:msg,cat:cat})
+  useMyPeerStore().update_messages(messages);
+  console.log(messages);
+}
+
+const new_connection=(cxn)=>{
+    remove_connection(cxn.peer);
+    connections.push(cxn);
+  }
+
+const remove_connection=(peerid)=>{
+    connections = connections.filter(function( obj ) {
+        if(pbj.peer == peerid){obj.close()}
+        return obj.peer !== peerid;
+    })
+}
+
+const new_call=(call)=>{
+    remove_call(call.peer)
+    connections.push(call);
+  }
+
+const remove_call=(peerid)=>{
+    calls = calls.filter(function( obj ) {
+        if(obj.peer == peerid){obj.close()}
+        return obj.peer !== peerid;
+    })
+}
+
+const send_message_all=(msg)=>{
+    new_message(mykeynum,msg,"me")
+    for(let i=0;i<connections.length;i++){
+        if(connections[i].open){
+            connections[i].send({keynum:mykeynum,msg:msg})
+        }
+    }
+}
+
+const peer_connect=(id)=>{
+    if (id && !connection_exists(id)) {
+        init_connection(myPeer.connect(id));
+      } 
+}
+
+const peer_call=(id)=>{
+    if (id && !call_exists(id)) {
+        init_call(myPeer.call(id,mystream));
+      } 
+}
 
 myPeer = new Peer()
 myPeer.on('open', (id) => {
-    useMyPeerStore().set_peerid(id);
+    useMyPeerStore().update_peerid(id);
     myPeer.on('connection', (cxn) => {
-        init_cxn(cxn);
+        init_connection(cxn);
        })
     myPeer.on('call', (call) => {
         init_call(call);
-        call.answer(useMyPeerStore().mystream)
+        call.answer(mystream)
+       })
+    myPeer.on('close', () => {
+        new_message(get_peer_keynum(id),"peer closed","info")
+        remove_peer(id);   
        })
     myPeer.on('error', (err) => {
-        console;log("PEER ERR : ",err);
+        new_message(get_peer_keynum(cxn.peer),"peer error :"+err,"info")
+        remove_peer(id); 
        })
 })
 
 
 
 
-const init_cxn = (cxn)=>{
-    console.log('connection', cxn)
-    console.log("PC",cxn.peerConnection);
-    useMyPeerStore().new_connection(cxn)
+const init_connection = (cxn)=>{
+    console.log("INIT_CONNEXION ",cxn.peer);
+    new_peer(cxn.peer);
     cxn.on('open', () => {
-      console.log(cxn.peer,"open");  
-      cxn.send({keynum:useMyPeerStore().keynum})
+      new_connection(cxn);
+      cxn.send({keynum:mykeynum})
     })
     cxn.on('data', (data) => {
-      console.log("data",cxn.peer,data);
+        console.log("DATA :",data)
+
       if(data.keynum){
-        useMyPeerStore().set_peer_keynum(cxn.peer,data.keynum)
+        set_peer_keynum (cxn.peer,data.keynum)
       }
       if(data.msg){
-        useMyPeerStore().new_message(data.keynum,data.msg,"you")
+        set_peer_msg (cxn.peer,data.msg)
+        new_message(data.keynum,data.msg,"peer")
       }
     })
     cxn.on('close', () => {
-      useMyPeerStore().del_connection(cxn,"connection closed")
+      new_message(get_peer_keynum(cxn.peer),"connection closed","info")
+      remove_connection(cxn.peer)
+      
     })
      cxn.on('error', (error) => {
-      useMyPeerStore().del_connection(cxn,"connection error :"+error)
+        new_message(get_peer_keynum(cxn.peer),"connection error :"+error,"info")
+        remove_connection(cxn.peer)
     })
 }
 
 const init_call =(call)=>{
-    console.log("CALL",call)
+    console.log("INIT_CALL ",call.peer);
+    new_peer(call.peer);
+
     call.on('stream',(stream =>{
-        useMyPeerStore().set_call_stream(call,stream)
+        new_call(call);
+        set_peer_stream (call.peer,stream)
+        
     }))
     call.on('close',()=>{
-        useMyPeerStore().del_call(call,"call closed")
+        new_message(get_peer_keynum(call.peer),"connection closed","info")
+        remove_call(call.peer)
     })
     call.on('error',(err)=>{
-        useMyPeerStore().del_call(call,"call error :"+err)
+        new_message(get_peer_keynum(call.peer),"call error :"+err,"info")
+        remove_call(call.peer)
     })
 
 }
@@ -68,82 +208,41 @@ const init_call =(call)=>{
 export const useMyPeerStore = defineStore('mypeer',{
 
     state: () => ({
-        keynum: "",
         peerid: "",
-        connections: [],
-        messages: [],
-        mystream: null,
-        calls: []
+        peers : [],
+        messages: []
     }),
     actions: {
         connect(id){  
             if (id) {
-                init_cxn(myPeer.connect(id));
+                peer_connect(id);
               } 
         },
         call(id){  
             if (id) {
-                init_call(myPeer.call(id,this.mystream));
+                peer_call(id);
               } 
         },
-        set_mystream(stream){
-            this.mystream=stream
+        update_peers(p){
+           this.peers=peers
         },
-        set_keynum(k){  
-            this.keynum=k;     
-        },
-        set_peerid(id){  
+        update_messages(m){
+            this.messages=m
+            console.log("m",this.messages)
+         },
+        update_peerid(id){  
             this.peerid=id;     
         },
-        set_peer_keynum(peerid,keynum){
-            for(let i=0;i<this.connections.length;i++){
-                if(this.connections[i].peerid==peerid){
-                    this.connections[i].keynum=keynum;
-                }
-            }
-        },
-        new_connection(cxn){
-            this.connections.push({cxn:cxn,peerid:cxn.peer,cxnid:cxn.connectionId,keynum:"000000"})
-        },
-        del_connection(cxn,msg){
-            var index = this.connections.map(function(e) { return e.peerid; }).indexOf(cxn.peer);
-            if(index >= 0){
-            useMyPeerStore().new_message(this.connections[index].keynum,msg,"info");
-            }
-            this.connections = this.connections.filter(function( obj ) {
-                return obj.cxnid !== cxn.connectionId;
-            });
-        },
-        new_message(keynum,msg,cat){
-                    this.messages.push({keynum:keynum,msg:msg,cat:cat})
+        set_keynum(k){  
+            set_my_keynum(k);     
         },
         send_message(msg){
-            useMyPeerStore().new_message(this.keynum,msg,"me");
-            for(let i=0;i<this.connections.length;i++){
-                if(this.connections[i].cxn && this.connections[i].cxn.open){
-                    this.connections[i].cxn.send({keynum:this.keynum,msg:msg})
-                }
-            }
+            send_message_all(msg);
         },
-        new_call(call){
-            this.calls.push({call:call,peerid:call.peer,stream:null,keynum:"000000"})
-        },
-        del_call(call,msg){
-            var index = this.calls.map(function(e) { return e.peerid; }).indexOf(call.peer);
-            if(index >= 0){
-            useMyPeerStore().new_message(this.calls[index].keynum,msg,"info");
-            }
-            this.calls = this.calls.filter(function( obj ) {
-                return obj.call !== call;
-            });
-        },
-        set_call_stream(call,stream){
-            for(let i=0;i<this.calls.length;i++){
-                if(this.calls[i].call == call){
-                    this.calls[i].stream=stream
-                }
-            }
+        stream(stream){
+            set_my_stream(stream)
         }
+       
     }
 
 

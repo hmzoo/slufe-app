@@ -21,7 +21,7 @@ watch( ()=>mypeer.peerid,(data) =>{
 
 watch( ()=>media.stream,(data) =>{
   console.log('media', data)
-  mypeer.set_mystream(data);
+  mypeer.stream(data);
 })
 
 
@@ -79,19 +79,9 @@ onMounted(() => {
        </i-table>
        </i-column>    
     </i-row>
-        <i-row>
-       <i-column xs="12"> 
-       <i-table border>
-      <tbody>
-       <tr v-for="item in mypeer.connections">
-       <th>{{item.keynum}}</th><td>{{item.cxnid}} </td><td>{{item.peerid}}</td>
-       </tr>
-      </tbody>
-       </i-table>
-       </i-column>    
-    </i-row>
+       
        <i-row>
-       <i-column xs="6">
+       <i-column xs="6">{{ mypeer.messages}}
        <Chat :messages="mypeer.messages" />
        <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
        </i-column>    
@@ -101,11 +91,11 @@ onMounted(() => {
     </i-row>
     
         <i-row>
-       <i-column xs="12"> 
+       <i-column xs="12"> <h3>peers</h3>
        <i-table border>
       <tbody>
-       <tr v-for="item in mypeer.calls">
-       <th>{{item.keynum}}</th><td>{{item.peerid}}</td><td><video :srcObject="item.stream" width="160" height="100" autoplay></video></td>
+       <tr v-for="item in mypeer.peers">
+       <th>{{item.keynum}}</th><td><small>{{item.id}}</small></td><td>{{item.message}}</td><td><video :srcObject="item.stream" width="160" height="100" autoplay></video></td>
        </tr>
       </tbody>
        </i-table>
