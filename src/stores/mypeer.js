@@ -4,28 +4,26 @@ import Peer from 'peerjs';
 
 
 let myPeer = null;
-let peers =[];
 let connections =[];
 let calls =[];
-let messages =[];
 let mystream = new MediaStream();
 let mykeynum = "000000"
 
 const new_peer= (id)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     if(index < 0){
-    peers.push({id:id,keynum:"000000",stream:new MediaStream(),message:""})
+        useMyPeerStore().peers.push({id:id,keynum:"000000",stream:new MediaStream(),message:""})
     }
-    useMyPeerStore().update_peers(peers);
+    
 }
 
 const remove_peer= (id)=>{
     remove_connection(id);
     remove_call(id);
-    peers = peers.filter(function( obj ) {
+    useMyPeerStore().peers = useMyPeerStore().peers.filter(function( obj ) {
         return obj.id !== id;
     });
-    useMyPeerStore().update_peers(peers);
+    
 }
 
 const get_my_keynum =()=>{ return mykeynum;}
@@ -35,7 +33,7 @@ const get_my_stream =()=>{ return mystream;}
 const set_my_stream =(s)=>{  mystream = s;}
 
 const peer_exists=(id)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     return index !=-1
 }
 const connection_exists=(id)=>{
@@ -49,41 +47,39 @@ const call_exists=(id)=>{
 }
 
 const get_peer_keynum =(id)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     if(index < 0){
     return "000000";
     }
-    return peers[index].keynum;
+    return useMyPeerStore().peers[index].keynum;
 }
 
 const set_peer_keynum =(id,keynum)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
+    console.log("setkey",index)
     if(index >= 0){
-      peers[index].keynum=keynum
-      useMyPeerStore().update_peers(peers);
+        useMyPeerStore().peers[index].keynum=keynum
+    
     }
 }
 
 const set_peer_stream =(id,stream)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     if(index >= 0){
-      peers[index].stream=stream
-      useMyPeerStore().update_peers(peers);
+        useMyPeerStore().peers[index].stream=stream
+      
     }
 }
 
 const set_peer_msg =(id,msg)=>{
-    var index = peers.map(function(e) { return e.id; }).indexOf(id);
+    var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     if(index >= 0){
-      peers[index].message=msg
-      useMyPeerStore().update_peers(peers);
+        useMyPeerStore().peers[index].message=msg
     }
 }
 
 const new_message=(keynum,msg,cat)=>{
-  messages.push({keynum:keynum,msg:msg,cat:cat})
-  useMyPeerStore().update_messages(messages);
-  console.log(messages);
+    useMyPeerStore().messages.push({keynum:keynum,msg:msg,cat:cat})
 }
 
 const new_connection=(cxn)=>{
@@ -93,7 +89,7 @@ const new_connection=(cxn)=>{
 
 const remove_connection=(peerid)=>{
     connections = connections.filter(function( obj ) {
-        if(pbj.peer == peerid){obj.close()}
+        if(obj.peer == peerid){obj.close()}
         return obj.peer !== peerid;
     })
 }
@@ -146,7 +142,7 @@ myPeer.on('open', (id) => {
         remove_peer(id);   
        })
     myPeer.on('error', (err) => {
-        new_message(get_peer_keynum(cxn.peer),"peer error :"+err,"info")
+        new_message(get_peer_keynum(id),"peer error :"+err,"info")
         remove_peer(id); 
        })
 })
@@ -165,6 +161,7 @@ const init_connection = (cxn)=>{
         console.log("DATA :",data)
 
       if(data.keynum){
+        console.log("OK")
         set_peer_keynum (cxn.peer,data.keynum)
       }
       if(data.msg){
@@ -224,11 +221,12 @@ export const useMyPeerStore = defineStore('mypeer',{
               } 
         },
         update_peers(p){
-           this.peers=peers
+            this.peers.splice(0, this.peers.length, ...p)
+            console.log("this",this.peers)
+           
         },
         update_messages(m){
-            this.messages=m
-            console.log("m",this.messages)
+            this.messages.splice(0, this.messages.length, ...m)
          },
         update_peerid(id){  
             this.peerid=id;     
@@ -243,6 +241,9 @@ export const useMyPeerStore = defineStore('mypeer',{
             set_my_stream(stream)
         }
        
+    },
+    getters: {
+        getPeers: (state) => state.peers
     }
 
 

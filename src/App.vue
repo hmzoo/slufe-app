@@ -1,6 +1,8 @@
 <script setup>
 import { ref , onMounted,watch } from 'vue'
+import { storeToRefs } from "pinia";
 import Chat from './components/Chat.vue';
+import Peers from './components/Peers.vue';
 import Camera from './components/Camera.vue';
 
 
@@ -12,6 +14,8 @@ import { useMediaStore } from '@/stores/media'
 const keynum = useKeyNumStore()
 const mypeer = useMyPeerStore()
 const media = useMediaStore()
+
+const { peers,messages } = storeToRefs(mypeer);
 
 watch( ()=>mypeer.peerid,(data) =>{
   console.log('some changed', data)
@@ -81,8 +85,8 @@ onMounted(() => {
     </i-row>
        
        <i-row>
-       <i-column xs="6">{{ mypeer.messages}}
-       <Chat :messages="mypeer.messages" />
+       <i-column xs="6">{
+       <Chat :messages="messages" />
        <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
        </i-column>    
        <i-column xs="6">
@@ -92,13 +96,7 @@ onMounted(() => {
     
         <i-row>
        <i-column xs="12"> <h3>peers</h3>
-       <i-table border>
-      <tbody>
-       <tr v-for="item in mypeer.peers">
-       <th>{{item.keynum}}</th><td><small>{{item.id}}</small></td><td>{{item.message}}</td><td><video :srcObject="item.stream" width="160" height="100" autoplay></video></td>
-       </tr>
-      </tbody>
-       </i-table>
+      <Peers :peers="peers" />
        </i-column>    
     </i-row>
 
