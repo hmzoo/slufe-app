@@ -1,19 +1,5 @@
 import { defineStore } from 'pinia';
 
-const play =()=> {
-  console.log("C",useMediaStore().getConstrains)
-          navigator.mediaDevices
-              .getUserMedia(useMediaStore().getConstrains)
-              .then(s => {
-                  console.log('streaming', s)
-                  useMediaStore().stream= s;
-              })
-              .catch(error => {
-                useMediaStore().stream=
-                alert(error, "May the browser didn't support or there is some errors.")
-              })
-}
-
 
 export const useMediaStore = defineStore('media',{
     
@@ -23,12 +9,14 @@ export const useMediaStore = defineStore('media',{
       camera: {beOn:true,id:"",index:0,mobile:"user",label:""},
       micro: {beOn:false,id:"",index:0,label:""},
       stream:null,
-      constrains:{}
+      constrains:{},
+      error:""
 
 
     }),
     actions: {
-        start(){       
+        start(){   
+           this.error ="";    
            this.stop();
             navigator.mediaDevices.enumerateDevices().then(devices => {
                 this.audioDevices = devices.filter(device => device.kind === 'audioinput')
@@ -56,19 +44,20 @@ export const useMediaStore = defineStore('media',{
                 navigator.mediaDevices
                   .getUserMedia(this.constrains)
                   .then(s => {
-                    console.log('streaming', s)
+                    //console.log('streaming', s)
                     this.stream= s;
                    })
                   .catch(error => {
                     this.stream= null;
-                    alert(error, "May the browser didn't support or there is some errors.")
+                    this.error = "⚠\n"+error + "\nMay the browser didn't support or there is some errors."
+             
                   })
               }else{this.stream= null;}})
         },
         stop(){
           if(this.stream){
             this.stream.getTracks().forEach(track => {
-              console.log('stopping', track)
+              //console.log('stopping', track)
               track.stop()
             })
             this.stream = null

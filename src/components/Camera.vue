@@ -20,9 +20,16 @@ onBeforeUnmount(() => media.stop())
 </script>
 
 <template>
-  <div>
-  <video :srcObject="media.stream" width="160" height="100" autoplay></video>
+<i-card style="width:360px">
+<div v-if="media.error.length > 0">
+  <span class="errText"  >{{ media.error }} {{ media.error.length }}</span>
+  </div>
+  <div v-if="media.error.length == 0" >
+  <video :srcObject="media.stream" width="320" height="200" autoplay  ></video>
+  </div>
 
+
+  <template #footer>
   <div>
     <span class="camButton" @click="media.switchcam" >
     <img src="@/assets/icons/enab-cam.png" v-if="media.camera.beOn"/>
@@ -38,15 +45,10 @@ onBeforeUnmount(() => media.stop())
     </span>
     <span class="camText" v-if="media.micro.beOn" >{{ media.micro.label}}</span>
     <span class="camButton" @click="media.swapmic" size="sm" v-if="media.micro.beOn" ><img src="@/assets/icons/swap.png" /></span>
-    
+
   </div>
-  {{ media.camera }}<br/>
-  {{ media.videoDevices}}<br/>
-  {{ media.audioDevices}}
-  </div>
-  <div>
-  {{ media.constrains}}
-  </div>
+  </template>
+</i-card>
 </template>
 
 
@@ -54,12 +56,26 @@ onBeforeUnmount(() => media.stop())
 
 .camText {
   display: inline-block;
-  width: 100px;
+  width: 260px;
   font-size:12px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   padding:2px 4px;
+}
+
+.errText {
+  display: inline-block;
+  width: 320px;
+  height: 200px;
+  font-size:14px;
+  padding:10px 6px;
+  font-style: italic;
+  color:#999999;
+  text-align:center;
+  white-space: pre-wrap;
+  line-height: 1em;
+  background:#333333
 }
 
 
@@ -85,9 +101,10 @@ onBeforeUnmount(() => media.stop())
 	font-family:Arial;
 	font-size:15px;
 	font-weight:bold;
-	padding:2px 4px;
+	padding:2px 2px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #ffffff;
+  width: 30px
 }
 .camButton:hover {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f6f6f6), color-stop(1, #ffffff));
