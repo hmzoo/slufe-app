@@ -1,80 +1,38 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useMediaStore } from '@/stores/media'
+import disacam from '@/assets/icons/disab-cam.png';
+import enacam from '@/assets/icons/enab-cam.png';
+import disamic from '@/assets/icons/disab-mic.png';
+import enamic from '@/assets/icons/enab-mic.png';
 
-import IcoBtn from '@/components/IcoBtn.vue';
-
-const media=useMediaStore();
+import swap from '@/assets/icons/swap.png';
+import settings from '@/assets/icons/settings.png';
+import copy from '@/assets/icons/copy.png';
+import dice from '@/assets/icons/dice.png';
 
 const props = defineProps({
-	camon: Boolean,
-    micon:Boolean
+	ico: String,
+    val: Boolean
 })
 
 
 
-
-onMounted(() => {
-  
-    media.start();
-    })
-onBeforeUnmount(() => media.stop())
 </script>
 
 <template>
-<i-card style="width:352px">
-  <div v-if="media.error.length > 0 || !media.camera.beOn">
-  <span class="errText"  >{{ media.error }}</span>
-  </div>
-  <div v-if="media.error.length == 0 && media.camera.beOn" >
-  <video :srcObject="media.stream" width="320" height="200" autoplay  ></video>
-  </div>
+    <span class="imgButton bg-disab-cam" >
+ <img :src="disacam" v-if="ico == 'cam' && !val" />
+ <img :src="enacam" v-if="ico == 'cam' && val" />
+  <img :src="disamic" v-if="ico == 'mic' && !val" />
+ <img :src="enamic" v-if="ico == 'mic' && val" />
+ <img :src="settings" v-if="ico == 'settings' " />
+ <img :src="copy" v-if="ico == 'copy' " />
+  <img :src="swap" v-if="ico == 'swap' " />
+  <img :src="dice" v-if="ico == 'dice' " />
+    </span>
 
-
-  <template #footer>
-  <div>
-    <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam"/>
-    <span class="camText" v-if="media.camera.beOn" >{{ media.camera.label}}</span>
-    <IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn"/>
-  </div>
-  <div>
-   <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
-    <span class="camText" v-if="media.micro.beOn" >{{ media.micro.label}}</span>
-    <IcoBtn ico="swap"  @click="media.swapmic" v-if="media.micro.beOn"/>
-  </div>
-  </template>
-</i-card>
 </template>
 
-
 <style>
-
-.camText {
-  display: inline-block;
-  width: 250px;
-  height:16px;
-  font-size:12px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding:2px 4px;
-  margin: 0px
-}
-
-.errText {
-  display: inline-block;
-  width: 320px;
-  height: 200px;
-  font-size:14px;
-  padding:10px 6px;
-  font-style: italic;
-  color:#999999;
-  text-align:center;
-  white-space: pre-wrap;
-  line-height: 1em;
-  background:#333333
-}
-
 
 .imgButton {
 	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
@@ -101,7 +59,8 @@ onBeforeUnmount(() => media.stop())
 	padding:2px 2px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #ffffff;
-  width: 30px
+  width: 30px;
+  height: 30px;
 }
 .imgButton:hover {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f6f6f6), color-stop(1, #ffffff));
@@ -117,5 +76,6 @@ onBeforeUnmount(() => media.stop())
 	position:relative;
 	top:1px;
 }
+
 
 </style>

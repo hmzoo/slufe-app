@@ -9,6 +9,10 @@ tar -zxf traefik_v2.9.6_linux_amd64.tar.gz
 traefik traefik --configFile=./slufe-app/traefik.yml
 ~~~
 
+## icons
+
+
+
 
 
 
