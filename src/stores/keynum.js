@@ -2,17 +2,20 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 
+const site_url = "https://slufe.com"
+
 
 export const useKeyNumStore = defineStore('keynum',{
     
     state: () => ({
       msg: "",
       key: "000000",
-      fwl: []
+      fwl: [],
+      site_url: site_url
     }),
     actions: {
         update_data(data){       
-            this.msg = data.msg || "no msg";
+            this.msg = data.msg || "";
             this.key = data.key || "no key";
             this.fwl = data.fwl || []; 
         },
@@ -39,6 +42,9 @@ export const useKeyNumStore = defineStore('keynum',{
              }
          
 
+    },
+    getters:{
+        keylink :(state) => {return state.site_url+"/"+state.key}
     }
 
 

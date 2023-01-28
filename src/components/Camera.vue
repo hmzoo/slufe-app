@@ -22,7 +22,8 @@ onBeforeUnmount(() => media.stop())
 </script>
 
 <template>
-<i-card style="width:352px">
+<i-card >
+
   <div v-if="media.error.length > 0 || !media.camera.beOn">
   <span class="errText"  >{{ media.error }}</span>
   </div>
@@ -51,7 +52,7 @@ onBeforeUnmount(() => media.stop())
 
 .camText {
   display: inline-block;
-  width: 250px;
+  width: 244px;
   height:16px;
   font-size:12px;
   overflow: hidden;

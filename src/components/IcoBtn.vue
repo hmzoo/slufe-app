@@ -19,7 +19,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <span class="imgButton bg-disab-cam" >
+    <span class="imgButton " >
  <img :src="disacam" v-if="ico == 'cam' && !val" />
  <img :src="enacam" v-if="ico == 'cam' && val" />
   <img :src="disamic" v-if="ico == 'mic' && !val" />
@@ -57,6 +57,7 @@ const props = defineProps({
 	font-size:15px;
 	font-weight:bold;
 	padding:2px 2px;
+	margin:0px 1px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #ffffff;
   width: 30px;
