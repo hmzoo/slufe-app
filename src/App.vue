@@ -44,8 +44,16 @@ const qmsg = ref("");
 
 const open = ref(false);
 
+const callNumber= ()=>{
+  let s = qkey.value
+  qkey.value=s.replace(new RegExp("[^0-9]","g"),"");
+  keynum.add(qkey.value)
+}
 
-
+const checkNumber=()=>{
+  qkey.value=qkey.value.replace(new RegExp("[^0-9]","g"),"");
+  console.log("OK",s,qkey.value)
+}
 
 
 onMounted(() => {
@@ -75,7 +83,7 @@ onMounted(() => {
         <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
         </i-column>
         
-        <i-column xs="6" lg="3"><i-input v-model="qkey" placeholder="Number .." type="text" size="sm"><template #append><i-button @click="keynum.add(qkey)" size="sm" color="primary">CALL</i-button></template></i-input></i-column>
+        <i-column xs="6" lg="3"><i-form @submit="callNumber"><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
         <i-column xs="4" lg="3"> <small>{{ keynum.msg}}</small></i-column>
 
     <i-column xs="1" class="_text-align:right"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
