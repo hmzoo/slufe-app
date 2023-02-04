@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:16.19.0
 
 # Create app directory
 WORKDIR /opt/app
@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 RUN npm run build
 EXPOSE 5000
-CMD [ "npm", "run", "serve" ]
+CMD [ "npm", "run", "docker" ]
