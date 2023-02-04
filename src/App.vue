@@ -96,7 +96,7 @@ onMounted(() => {
        
 <i-layout vertical class="_padding-top:1/2">
     <i-layout-content>
-            <i-sidebar v-model="open" size="lg" placement="right" :collapse="true" style="----width:400px">
+            <i-sidebar v-model="open" size="lg" placement="right" :collapse="true" style="----width:360px;----margin:0px">
           <Settings />
         </i-sidebar>
        <i-container>
@@ -122,7 +122,7 @@ onMounted(() => {
       
        </i-column>    
        <i-column xs="6">
-       <Camera />
+<div style="height:500px"></div>
        </i-column>
     </i-row>
     

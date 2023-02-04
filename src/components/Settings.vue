@@ -16,7 +16,7 @@ const copylink = ()=>{
 
 
 <template>
-<div>
+<div style="margin:0;padding:0">
 <Camera />
 <i-card >
 <template #header>Your number is <b>{{ keynum.key}}</b> <br/> </template>

@@ -22,17 +22,14 @@ onBeforeUnmount(() => media.stop())
 </script>
 
 <template>
-<i-card >
+<i-card>
 
   <div v-if="media.error.length > 0 || !media.camera.beOn">
-  <span class="errText"  >{{ media.error }}</span>
+  <span class="errText vid"  >{{ media.error }}</span>
   </div>
   <div v-if="media.error.length == 0 && media.camera.beOn" >
-  <video :srcObject="media.stream" width="320" height="200" autoplay  ></video>
+  <video :srcObject="media.stream" width="270" height="200" autoplay class="vid" ></video>
   </div>
-
-
-  <template #footer>
   <div>
     <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam"/>
     <span class="camText" v-if="media.camera.beOn" >{{ media.camera.label}}</span>
@@ -43,7 +40,6 @@ onBeforeUnmount(() => media.stop())
     <span class="camText" v-if="media.micro.beOn" >{{ media.micro.label}}</span>
     <IcoBtn ico="swap"  @click="media.swapmic" v-if="media.micro.beOn"/>
   </div>
-  </template>
 </i-card>
 </template>
 
@@ -52,7 +48,7 @@ onBeforeUnmount(() => media.stop())
 
 .camText {
   display: inline-block;
-  width: 244px;
+  width: 205px;
   height:16px;
   font-size:12px;
   overflow: hidden;
@@ -64,7 +60,7 @@ onBeforeUnmount(() => media.stop())
 
 .errText {
   display: inline-block;
-  width: 320px;
+  width: 270px;
   height: 200px;
   font-size:14px;
   padding:10px 6px;
@@ -117,6 +113,10 @@ onBeforeUnmount(() => media.stop())
 .imgButton:active {
 	position:relative;
 	top:1px;
+}
+.vid {
+    margin: 0 auto;
+    display: block;
 }
 
 </style>
