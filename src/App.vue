@@ -118,8 +118,8 @@ onMounted(() => {
        
        <i-row>
        <i-column xs="6">
-       <Chat :messages="messages" />
-       <i-input v-model="qmsg" placeholder="message .." type="text" size="sm"><template #append><i-button @click="mypeer.send_message(qmsg)" size="sm">SEND</i-button></template></i-input>
+       <Chat  />
+      
        </i-column>    
        <i-column xs="6">
        <Camera />

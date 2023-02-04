@@ -6,13 +6,17 @@ const { v4: uuidv4 } = require('uuid');
 
 let RedisStore = require("connect-redis")(session)
 const Redis = require("ioredis")
-let redisClient = new Redis()
+
+const redisClient = new Redis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+});
 
 const path = require('path');
 
 const myred = require('./myred.js');
 
-const isProd = process.env.NODE_ENV === 'production'
+const isProd = process.env.NODE_ENV === 'production' 
 
 
 

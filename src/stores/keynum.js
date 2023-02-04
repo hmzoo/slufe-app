@@ -3,6 +3,7 @@ import axios from 'axios';
 axios.defaults.withCredentials = true;
 
 const site_url = "https://slufe.com"
+const site_title = "SLUFE"
 
 
 export const useKeyNumStore = defineStore('keynum',{

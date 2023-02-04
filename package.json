@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development node ./server.js",
     "serve": "cross-env NODE_ENV=production node ./server.js",
+    "docker": "cross-env NODE_ENV=production REDIS_HOST=redis-server node ./server.js",
     "build": "vite build"
   },
   "repository": {
