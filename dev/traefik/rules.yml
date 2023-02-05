@@ -4,10 +4,10 @@ http:
       rule: Host(`hmdev.mshome.net`)
       entrypoints : 
         - websecure
-      service: slufe
+      service: app
       tls: {}
   services:
-    slufe:
+    app:
       loadbalancer:
         servers:
-          - url: 'http://localhost:5000'
+          - url: 'http://172.18.0.1:5000'

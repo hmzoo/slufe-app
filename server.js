@@ -32,7 +32,7 @@ app.use(session(
     store: new RedisStore({ client: redisClient ,ttl: 86400000}),
     saveUninitialized: false,
     resave: false,
-    secret: "zQleLeWoJly1OSFF",
+    secret: uuidv4(),
     cookie: {
       secure: false,
       maxAge: 86400000
@@ -53,6 +53,7 @@ if (!isProd) {
     root: __dirname,
     logLevel: !isProd ? 'error' : 'info',
     server: {
+      https: true,
       middlewareMode: true,
       watch: {
         usePolling: true,

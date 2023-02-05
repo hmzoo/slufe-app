@@ -73,7 +73,7 @@ onMounted(() => {
     <i-layout-header class="_background:dark">
            <i-container color="dark">
     <i-row middle>
-        <i-column xs="3" lg="2"><b>SLUFE APP</b></i-column>
+        <i-column xs="3" lg="2"><b>{{ keynum.site_title }}</b></i-column>
         <i-column xs="3" lg="1"><b class="_font-size:xl">{{ keynum.key }}</b></i-column>
         <i-column xs="3" lg="1"  class="_text-align:right" >
         <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam" />

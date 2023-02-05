@@ -12,7 +12,8 @@ export const useKeyNumStore = defineStore('keynum',{
       msg: "",
       key: "000000",
       fwl: [],
-      site_url: site_url
+      site_url: site_url,
+      site_title: site_title
     }),
     actions: {
         update_data(data){       
