@@ -13,10 +13,12 @@ export const useKeyNumStore = defineStore('keynum',{
       key: "000000",
       fwl: [],
       site_url: site_url,
-      site_title: site_title
+      site_title: site_title,
+      updated: false
     }),
     actions: {
         update_data(data){       
+            this.updated = this.fwl.length != data.fwl.length
             this.msg = data.msg || "";
             this.key = data.key || "no key";
             this.fwl = data.fwl || []; 

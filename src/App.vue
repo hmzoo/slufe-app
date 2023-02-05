@@ -31,6 +31,14 @@ watch( ()=>media.stream,(data) =>{
   mypeer.stream(data);
 })
 
+watch( ()=>keynum.fwl,(data) =>{
+  console.log("watch");
+  for(let i=0;i<data.length;i++){
+    console.log("connectfwl",data[i].d)
+    //mypeer.connect(data[i].d);
+  }
+})
+
 
 
 const msg = ref("no msg");
@@ -55,10 +63,19 @@ const checkNumber=()=>{
   console.log("OK",s,qkey.value)
 }
 
+const connectPeers=()=>{
+    for(let i=0;i<keynum.fwl.length;i++){
+    console.log("connectfwl",keynum.fwl[i].d)
+    mypeer.connect(keynum.fwl[i].d);
+  }
+}
+
 
 onMounted(() => {
    keynum.hb();
+   mypeer.reset();
   window.setInterval(() => {
+    connectPeers();
     keynum.hb(); 
   }, 10000);
 });

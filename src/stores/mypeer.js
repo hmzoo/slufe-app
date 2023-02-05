@@ -6,6 +6,7 @@ import Peer from 'peerjs';
 let myPeer = null;
 let connections =[];
 let calls =[];
+let failed_peerid=[];
 let mystream = new MediaStream();
 let mykeynum = "000000"
 
@@ -37,13 +38,16 @@ const peer_exists=(id)=>{
     return index !=-1
 }
 const connection_exists=(id)=>{
-    var index = connections.map(function(e) { return e.id; }).indexOf(id);
+    var index = connections.map(function(e) { return e.peer; }).indexOf(id);
+    console.log(index,id,connections[index])
+    if (connections[index],index !=-1 ){console.log("CXN:",connections[index],connections[index].open)}
     return index !=-1 && connections[index].open
 }
 
 const call_exists=(id)=>{
-    var index = calls.map(function(e) { return e.id; }).indexOf(id);
-    return index !=-1 && calls[index].open
+    console.log(calls)
+    var index = calls.map(function(e) { return e.peer; }).indexOf(id);
+    return index !=-1 && calls[index].active
 }
 
 const get_peer_keynum =(id)=>{
@@ -58,8 +62,11 @@ const set_peer_keynum =(id,keynum)=>{
     var index = useMyPeerStore().peers.map(function(e) { return e.id; }).indexOf(id);
     console.log("setkey",index)
     if(index >= 0){
+        if(useMyPeerStore().peers[index].keynum=="000000"){
+        new_message(keynum,"connected","info")
+        }
         useMyPeerStore().peers[index].keynum=keynum
-    
+        
     }
 }
 
@@ -79,7 +86,9 @@ const set_peer_msg =(id,msg)=>{
 }
 
 const new_message=(keynum,msg,cat)=>{
+    if(keynum !="000000"){
     useMyPeerStore().messages.push({keynum:keynum,msg:msg,cat:cat})
+    }
 }
 
 const new_connection=(cxn)=>{
@@ -96,7 +105,7 @@ const remove_connection=(peerid)=>{
 
 const new_call=(call)=>{
     remove_call(call.peer)
-    connections.push(call);
+    calls.push(call);
   }
 
 const remove_call=(peerid)=>{
@@ -115,21 +124,42 @@ const send_message_all=(msg)=>{
     }
 }
 
+const send_callme_all=()=>{
+    for(let i=0;i<connections.length;i++){
+        if(connections[i].open){
+            connections[i].send({keynum:mykeynum,ask:"callme"})
+        }
+    }
+}
+
+const call_all=()=>{
+    console.log("mystream",mystream)
+    for(let i=0;i<connections.length;i++){
+        if(connections[i].open){
+            peer_call(connections[i].peer)
+        }
+    }
+}
+
 const peer_connect=(id)=>{
-    if (id && !connection_exists(id)) {
+    if (id && !failed_peerid.includes(id) && !connection_exists(id) ) {
+        
         init_connection(myPeer.connect(id));
       } 
 }
 
 const peer_call=(id)=>{
-    if (id && !call_exists(id)) {
-        init_call(myPeer.call(id,mystream));
+    if (id  && !failed_peerid.includes(id) && !call_exists(id) ) {
+        let stream=mystream;
+        if(stream ==null){stream=new MediaStream();}
+        init_call(myPeer.call(id,stream));
       } 
 }
-
+const init_mypeer =()=>{
 myPeer = new Peer()
 myPeer.on('open', (id) => {
     useMyPeerStore().update_peerid(id);
+    failed_peerid.push(id);
     myPeer.on('connection', (cxn) => {
         init_connection(cxn);
        })
@@ -142,10 +172,22 @@ myPeer.on('open', (id) => {
         remove_peer(id);   
        })
     myPeer.on('error', (err) => {
+        console.log(id,err);
+        let serr=err.toString();
+        if(serr.length>34){
+        let err_msg = serr.substring(0,32);
+        
+        if(err_msg=="Error: Could not connect to peer"){
+            let err_id = serr.substring(33);
+            failed_peerid.push(err_id);
+        }
+        }
+
         new_message(get_peer_keynum(id),"peer error :"+err,"info")
         remove_peer(id); 
        })
 })
+}
 
 
 
@@ -155,7 +197,12 @@ const init_connection = (cxn)=>{
     new_peer(cxn.peer);
     cxn.on('open', () => {
       new_connection(cxn);
-      cxn.send({keynum:mykeynum})
+      cxn.send({keynum:mykeynum});
+      if(get_peer_keynum(cxn.peer)!="000000"){
+        new_message(get_peer_keynum(cxn.peer),"connected","info")
+        }
+        peer_call(cxn.peer);
+      
     })
     cxn.on('data', (data) => {
         console.log("DATA :",data)
@@ -168,6 +215,10 @@ const init_connection = (cxn)=>{
         set_peer_msg (cxn.peer,data.msg)
         new_message(data.keynum,data.msg,"peer")
       }
+      if(data.ask && data.ask=="callme"){
+        console.log("CALLME");
+        peer_call(cxn.peer)
+      }
     })
     cxn.on('close', () => {
       new_message(get_peer_keynum(cxn.peer),"connection closed","info")
@@ -175,6 +226,7 @@ const init_connection = (cxn)=>{
       
     })
      cxn.on('error', (error) => {
+        console.log("ERR",error)
         new_message(get_peer_keynum(cxn.peer),"connection error :"+error,"info")
         remove_connection(cxn.peer)
     })
@@ -238,7 +290,23 @@ export const useMyPeerStore = defineStore('mypeer',{
             send_message_all(msg);
         },
         stream(stream){
-            set_my_stream(stream)
+            set_my_stream(stream);
+            call_all();
+        },
+        reset(){
+            if(myPeer!=null){
+            for(let i=0;i<connections.length;i++){
+                connections[i].close();
+             }
+             for(let i=0;i<calls.length;i++){
+                 calls[i].close();
+              }
+              connections=[];
+              calls=[];
+            this.peers.splice(0,this.peers.length)
+            myPeer.destroy();
+            }
+            init_mypeer();
         }
        
     },
