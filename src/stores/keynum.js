@@ -39,11 +39,15 @@ export const useKeyNumStore = defineStore('keynum',{
             })       
          },
          add(k){
-            console.log("ADD",k)
                 axios.get('/add',{params: { key: k}}).then(res => {
                  this.update_data(res.data);
                 })       
-             }
+             },
+         clean() {
+                 axios.get('/clean').then(res => {
+                  this.update_data(res.data);
+                 })       
+              }
          
 
     },

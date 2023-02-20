@@ -1,21 +1,21 @@
 <script setup>
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
-import { useKeyNumStore } from '@/stores/keynum';
-import { useMyPeerStore } from '@/stores/mypeer'
+import { useSlufeStore } from '@/stores/slufe';
 
 
 
-const keynum = useKeyNumStore();
-const mypeer = useMyPeerStore()
+
+const slufe = useSlufeStore();
+
 
 const copylink = ()=>{
   navigator.clipboard.writeText(keynum.keylink);
 }
 
 const reset = ()=>{
-  mypeer.reset();
-  keynum.renew();
+  slufe.reset();
+  slufe.renew();
 }
 
 
@@ -26,9 +26,9 @@ const reset = ()=>{
 <div style="margin:0;padding:0">
 <Camera />
 <i-card >
-<template #header>Your number is <b>{{ keynum.key}}</b> <br/> </template>
+<template #header>Your number is <b>{{ slufe.key}}</b> <br/> </template>
  <div><IcoBtn ico="dice"  @click="reset()"/> Get a new Number</div>
-<div><small>Link to your space :</small><br/><IcoBtn ico="copy" @click="copylink()" /> {{keynum.keylink}}</div>
+<div><small>Link to your space :</small><br/><IcoBtn ico="copy" @click="copylink()" /> {{slufe.keylink}}</div>
 </i-card>
     
 

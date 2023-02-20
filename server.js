@@ -113,9 +113,19 @@ const add_session =(req,key) => {
   })
 }
 
+const clean_session =(req) => {
+  return  myred.check_key(req.session.key, req.session.uid).then(ans => {
+    if (ans) {
+     return  myred.clean_keys(req.session.key).then(rep => {return rep;})
+    } else {
+     return  new_session(req)
+    }
+  })
+}
+
 
 app.get('/hb', (req, res) => {
-    data_session(req).then(rep =>{res.json(rep);})
+    clean_session(req).then(rep =>{res.json(rep);})
 });
 
 app.get('/new', (req, res) => {
@@ -129,6 +139,10 @@ app.get('/set', (req, res) => {
 app.get('/add', (req, res) => {
   add_session(req,req.query.key).then(rep =>{res.json(rep);})
     })
+
+app.get('/clean', (req, res) => {
+      clean_session(req).then(rep =>{res.json(rep);})
+        })
 
 
 app.get('^/:qkey([0-9]{6})', function (req, res) {

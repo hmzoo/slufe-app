@@ -1,8 +1,8 @@
 <script setup>
 import { ref ,onUpdated } from 'vue'
 import { storeToRefs } from "pinia";
-import { useMyPeerStore } from '@/stores/mypeer'
-const mypeer = useMyPeerStore()
+import { useSlufeStore } from '@/stores/slufe'
+const mypeer = useSlufeStore()
 const { messages } = storeToRefs(mypeer);
 const qmsg = ref("");
 const msg_list = ref(null);

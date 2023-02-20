@@ -65,6 +65,22 @@ const myred = {
                 return myred.json_data(key,msg) 
             }
      })},
+     clean_keys: (key)=>{
+        return redis.smembers("fwl_" + key).then(keys => {
+            for (let i = 0; i < keys.length; i++) {
+                let k = keys[i]
+                redis.exists("uid_" + k ).then(ans => {
+                    console.log("clean",key,keys,ans);
+                    if(ans != 1 ){
+                        redis.srem("fwl_" + key,k).then(rep=>{console.log("srem",rep)});
+                    }
+                })
+
+            }
+            return myred.json_data(key,"")
+        })
+
+     },
      json_err: { key: "", fwl: [] ,msg:"ERR" },
     json_data: ( key,msg) => {
                 let resp = { key: key, fwl: [],msg:msg };
@@ -86,7 +102,7 @@ const myred = {
                             return resp;
                         })
                     } else {
-                        return myred.json_err;
+                        return resp;
                     }
                 })
 

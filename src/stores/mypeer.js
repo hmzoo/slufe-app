@@ -19,6 +19,7 @@ const new_peer= (id)=>{
 }
 
 const remove_peer= (id)=>{
+    console.log("rm peer",id)
     remove_connection(id);
     remove_call(id);
     useMyPeerStore().peers = useMyPeerStore().peers.filter(function( obj ) {
@@ -68,6 +69,34 @@ const set_peer_keynum =(id,keynum)=>{
         useMyPeerStore().peers[index].keynum=keynum
         
     }
+}
+
+const clean_peer = (id,keynum)=>{
+    let todelete =[];
+   for (let i=0;i< useMyPeerStore().peers.length;i++){
+     if (useMyPeerStore().peers[i].keynum == keynum && useMyPeerStore().peers[i].id != id){
+           todelete.push(useMyPeerStore().peers[i].id)
+     }
+   }
+   for (let i=0;i<todelete.length;i++){
+    remove_peer(todelete[i]);
+   }
+   
+
+}
+
+const clean_peers = (keynums)=>{
+    let todelete =[];
+   for (let i=0;i< useMyPeerStore().peers.length;i++){
+     if (keynums.indexOf(useMyPeerStore().peers[i].keynum)<0){
+           todelete.push(useMyPeerStore().peers[i].id)
+     }
+   }
+   for (let i=0;i<keynums.length;i++){
+    remove_peer(todelete[i]);
+   }
+   
+
 }
 
 const set_peer_stream =(id,stream)=>{
@@ -210,6 +239,7 @@ const init_connection = (cxn)=>{
       if(data.keynum){
         console.log("OK")
         set_peer_keynum (cxn.peer,data.keynum)
+        clean_peer (cxn.peer,data.keynum)
       }
       if(data.msg){
         set_peer_msg (cxn.peer,data.msg)

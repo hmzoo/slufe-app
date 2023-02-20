@@ -10,34 +10,23 @@ import IcoBtn from '@/components/IcoBtn.vue';
 
 
 
-import { useKeyNumStore } from '@/stores/keynum'
-import { useMyPeerStore } from '@/stores/mypeer'
+
+import { useSlufeStore } from '@/stores/slufe'
 import { useMediaStore } from '@/stores/media'
 
-const keynum = useKeyNumStore()
-const mypeer = useMyPeerStore()
+const slufe = useSlufeStore()
 const media = useMediaStore()
 
-const { peers,messages } = storeToRefs(mypeer);
+const { peers,messages } = storeToRefs(slufe);
 
-watch( ()=>mypeer.peerid,(data) =>{
-  console.log('some changed', data)
-  keynum.set(data)
-  mypeer.set_keynum(keynum.key)
-})
+
 
 watch( ()=>media.stream,(data) =>{
   console.log('media', data)
-  mypeer.stream(data);
+  slufe.stream(data);
 })
 
-watch( ()=>keynum.fwl,(data) =>{
-  console.log("watch");
-  for(let i=0;i<data.length;i++){
-    console.log("connectfwl",data[i].d)
-    //mypeer.connect(data[i].d);
-  }
-})
+
 
 
 
@@ -55,7 +44,7 @@ const open = ref(false);
 const callNumber= ()=>{
   let s = qkey.value
   qkey.value=s.replace(new RegExp("[^0-9]","g"),"");
-  keynum.add(qkey.value)
+  slufe.add(qkey.value)
 }
 
 const checkNumber=()=>{
@@ -63,20 +52,15 @@ const checkNumber=()=>{
   console.log("OK",s,qkey.value)
 }
 
-const connectPeers=()=>{
-    for(let i=0;i<keynum.fwl.length;i++){
-    console.log("connectfwl",keynum.fwl[i].d)
-    mypeer.connect(keynum.fwl[i].d);
-  }
-}
+
 
 
 onMounted(() => {
-   keynum.hb();
-   mypeer.reset();
+   slufe.hb();
+   slufe.reset();
    window.setInterval(() => {
-    connectPeers();
-    keynum.hb(); 
+
+    slufe.hb(); 
   }, 10000);
 });
 
@@ -90,8 +74,8 @@ onMounted(() => {
     <i-layout-header class="_background:dark">
            <i-container color="dark">
     <i-row middle>
-        <i-column xs="3" lg="2"><b>{{ keynum.site_title }}</b></i-column>
-        <i-column xs="3" lg="1"><b class="_font-size:xl">{{ keynum.key }}</b></i-column>
+        <i-column xs="3" lg="2"><b>{{ slufe.site_title }}</b></i-column>
+        <i-column xs="3" lg="1"><b class="_font-size:xl">{{ slufe.key }}</b></i-column>
         <i-column xs="3" lg="1"  class="_text-align:right" >
         <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam" />
         </i-column>
@@ -101,7 +85,7 @@ onMounted(() => {
         </i-column>
         
         <i-column xs="6" lg="3"><i-form @submit="callNumber"><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
-        <i-column xs="4" lg="3"> <small>{{ keynum.msg}}</small></i-column>
+        <i-column xs="4" lg="3"> <small>{{ slufe.msg}}</small></i-column>
 
     <i-column xs="1" class="_text-align:right"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
     </i-row>
@@ -123,10 +107,10 @@ onMounted(() => {
        <i-column xs="12"> 
        <i-table border>
       <tbody>
-       <tr v-for="item in keynum.fwl">
+       <tr v-for="item in slufe.fwl">
        <th>{{item.k}}</th><td>{{item.d}}</td>
-       <td><i-button @click="mypeer.connect(item.d)" size="sm">CONNECT</i-button></td>
-       <td><i-button @click="mypeer.call(item.d)" size="sm">CALL</i-button></td>
+       <td><i-button @click="slufe.connect(item.d)" size="sm">CONNECT</i-button></td>
+       <td><i-button @click="slufe.call(item.d)" size="sm">CALL</i-button></td>
        </tr>
       </tbody>
        </i-table>
