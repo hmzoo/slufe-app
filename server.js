@@ -19,7 +19,6 @@ const myred = require('./myred.js');
 const isProd = process.env.NODE_ENV === 'production' 
 
 
-
 const app = express();
 
 
@@ -38,11 +37,6 @@ app.use(session(
       maxAge: 86400000
     }
   }));
-
-const ctrl_session_rate = (n, t) => {
-
-}
-
 
 
 
@@ -71,6 +65,11 @@ if (!isProd) {
 }
 
 const new_session = (req) => {
+
+  return  myred.check_key(req.session.key, req.session.uid).then(ans => {
+    if (ans) {
+      myred.reset_key(req.session.key)
+    }
  
   req.session.uid = uuidv4();
   return myred.new_key(req.session.uid).then(rep => {
@@ -81,6 +80,7 @@ const new_session = (req) => {
     }
     return rep;
   });
+})
 }
 
 const data_session = (req) => {

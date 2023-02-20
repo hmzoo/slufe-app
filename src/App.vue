@@ -74,7 +74,7 @@ const connectPeers=()=>{
 onMounted(() => {
    keynum.hb();
    mypeer.reset();
-  window.setInterval(() => {
+   window.setInterval(() => {
     connectPeers();
     keynum.hb(); 
   }, 10000);

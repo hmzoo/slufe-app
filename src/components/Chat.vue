@@ -31,7 +31,7 @@ if(msg_list.value && !msg_list_lock.value) {
     </div>
     <div class="msg_input">
     <i-form @submit="send()">
-     <i-input v-model="qmsg" placeholder="message .." type="text" size="sm" style="padding:2px"><template #append><i-button type="submit" size="sm" color="secondary" style="padding:2px">SEND</i-button></template></i-input>
+     <i-input v-model="qmsg" placeholder="message .." type="text" size="sm" style=""><template #append><i-button type="submit" size="sm" color="secondary" style="padding:2px">SEND</i-button></template></i-input>
     </i-form> 
     </div> 
   </div>
@@ -49,8 +49,8 @@ if(msg_list.value && !msg_list_lock.value) {
 
 }
 .msg_input {
-
- 
+  margin : 3px 0px
+  
 }
 
 .msg {
