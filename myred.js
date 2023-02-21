@@ -52,7 +52,7 @@ const myred = {
          return redis.set("data_" + key, val, 'ex', ttl).then(r => { return myred.json_data(key,msg) }); 
     },
     add_key: (key, qkey) => {
-        
+        if (key == qkey) {return myred.json_data(key,"you are "+key ) }
         return redis.exists("uid_" + qkey).then(ans => {
             console.log("add",key,qkey,ans)
             let msg ="";

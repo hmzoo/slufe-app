@@ -50,7 +50,7 @@ const connection_exists = (id) => {
 }
 
 const call_exists = (id) => {
-    console.log(calls)
+    console.log("ce",id,calls)
     var index = calls.map(function (e) { return e.peer; }).indexOf(id);
     return index != -1 && calls[index].active
 }
@@ -174,11 +174,16 @@ const init_mypeer = () => {
         useSlufeStore().set(id);
         failed_peerid.push(id);
         myPeer.on('connection', (cxn) => {
-            init_connection(cxn);
+            if ( !connection_exists(id)) {
+                init_connection(cxn);
+            }
         })
         myPeer.on('call', (call) => {
+            
             init_call(call);
+            
             call.answer(mystream)
+            
         })
         myPeer.on('close', () => {
             new_message(get_peer_keynum(id), "peer closed", "info")
@@ -202,8 +207,20 @@ const init_mypeer = () => {
     })
 }
 
-
-
+const reset_mypeer = () => {
+if (myPeer != null) {
+    for (let i = 0; i < connections.length; i++) {
+        connections[i].close();
+    }
+    for (let i = 0; i < calls.length; i++) {
+        calls[i].close();
+    }
+    connections = [];
+    calls = [];
+    useSlufeStore().peers.splice(0,  useSlufeStore().length)
+    myPeer.destroy();
+}
+}
 
 const init_connection = (cxn) => {
     console.log("INIT_CONNEXION ", cxn.peer);
@@ -257,7 +274,7 @@ const init_call = (call) => {
 
     }))
     call.on('close', () => {
-        new_message(get_peer_keynum(call.peer), "connection closed", "info")
+        //new_message(get_peer_keynum(call.peer), "call closed", "info")
         remove_call(call.peer)
     })
     call.on('error', (err) => {
@@ -267,22 +284,18 @@ const init_call = (call) => {
 
 }
 
-const synchro = () => {
+const synchro_fwl_peers = () => {
     let fwl = useSlufeStore().fwl
     let peers = useSlufeStore().peers
     let todelete = [];
 
     for (let i = 0; i < fwl.length; i++) {
-        if (fwl[i].d) {
-            peer_connect(fwl[i].d);
-            set_peer_keynum(fwl[i].d, fwl[i].k)
 
             for (let j = 0; j < peers.length; j++) {
                 if (peers[j].keynum == fwl[i].k && peers[j].id != fwl[i].d) {
                     todelete.push(peers[j].id)
                 }
-            }
-        }
+            }   
     }
     for (let i = 0; i < peers.length; i++) {
         var index = fwl.map(function (e) { return e.k; }).indexOf(peers[i].keynum);
@@ -290,10 +303,17 @@ const synchro = () => {
             todelete.push(peers[i].id)
         }
     }
-    console.log("SYNCHRO",todelete)
+    
     for (let i = 0; i < todelete.length; i++) {
         remove_peer(todelete[i]);
     }
+    for (let i = 0; i < fwl.length; i++) {
+    if (fwl[i].d) {
+        peer_connect(fwl[i].d);
+    }}
+    console.log("CXNS",connections)
+    console.log("CALLS",calls)
+
 }
 
 
@@ -315,11 +335,11 @@ export const useSlufeStore = defineStore('slufe', {
             this.msg = data.msg || "";
             this.key = data.key || "no key";
             this.fwl = data.fwl || [];
+            
         },
         hb() {
             axios.get('/hb').then(res => {
-                this.update_data(res.data);
-                synchro();
+                this.update_data(res.data);  
             })
         },
         renew() {
@@ -373,20 +393,16 @@ export const useSlufeStore = defineStore('slufe', {
             set_my_stream(stream);
             call_all();
         },
-        reset() {
-            if (myPeer != null) {
-                for (let i = 0; i < connections.length; i++) {
-                    connections[i].close();
-                }
-                for (let i = 0; i < calls.length; i++) {
-                    calls[i].close();
-                }
-                connections = [];
-                calls = [];
-                this.peers.splice(0, this.peers.length)
-                myPeer.destroy();
-            }
+        init_peer() {
+            reset_mypeer();
             init_mypeer();
+        },
+        reset_peer() {
+            reset_mypeer();
+        },
+        synchro() {
+            synchro_fwl_peers();
+            
         }
 
     },

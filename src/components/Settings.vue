@@ -14,8 +14,9 @@ const copylink = ()=>{
 }
 
 const reset = ()=>{
-  slufe.reset();
+  
   slufe.renew();
+  slufe.init_peer();
 }
 
 

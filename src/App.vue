@@ -7,10 +7,6 @@ import Peers from '@/components/Peers.vue';
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
 
-
-
-
-
 import { useSlufeStore } from '@/stores/slufe'
 import { useMediaStore } from '@/stores/media'
 
@@ -20,24 +16,14 @@ const media = useMediaStore()
 const { peers,messages } = storeToRefs(slufe);
 
 
-
 watch( ()=>media.stream,(data) =>{
   console.log('media', data)
   slufe.stream(data);
 })
 
 
-
-
-
-const msg = ref("no msg");
-const key = ref("");
-const fwl = ref([]);
-
 const qkey = ref("");
-const qval = ref("");
 
-const qmsg = ref("");
 
 const open = ref(false);
 
@@ -47,22 +33,18 @@ const callNumber= ()=>{
   slufe.add(qkey.value)
 }
 
-const checkNumber=()=>{
-  qkey.value=qkey.value.replace(new RegExp("[^0-9]","g"),"");
-  console.log("OK",s,qkey.value)
-}
-
-
 
 
 onMounted(() => {
+   slufe.init_peer();
    slufe.hb();
-   slufe.reset();
+   window.addEventListener('beforeunload', ()=>{slufe.reset_peer()});
    window.setInterval(() => {
-
     slufe.hb(); 
-  }, 10000);
+    slufe.synchro(); 
+  }, 3000);
 });
+
 
 
 
@@ -92,8 +74,6 @@ onMounted(() => {
     </i-container>
        
     </i-layout-header>
-        
- 
        
 <i-layout vertical class="_padding-top:1/2">
     <i-layout-content>
