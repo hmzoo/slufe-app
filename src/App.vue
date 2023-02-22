@@ -13,11 +13,11 @@ import { useMediaStore } from '@/stores/media'
 const slufe = useSlufeStore()
 const media = useMediaStore()
 
-const { peers,messages } = storeToRefs(slufe);
+const { flux,messages } = storeToRefs(slufe);
 
 
 watch( ()=>media.stream,(data) =>{
-  console.log('media', data)
+  
   slufe.stream(data);
 })
 
@@ -109,7 +109,7 @@ onMounted(() => {
     
         <i-row>
        <i-column xs="12"> <h3>peers</h3>
-      <Peers :peers="peers" />
+      <Peers :peers="flux" />
        </i-column>    
     </i-row>
 

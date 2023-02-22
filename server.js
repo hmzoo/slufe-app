@@ -106,7 +106,7 @@ const set_session =(req,val) => {
 const add_session =(req,key) => {
   return  myred.check_key(req.session.key, req.session.uid).then(ans => {
     if (ans) {
-     return  myred.add_key(req.session.key, key).then(rep => {console.log("REP:",rep);return rep;})
+     return  myred.add_key(req.session.key, key).then(rep => {return rep;})
     } else {
      return  new_session(req).then(rep =>{return add_session(req,key);})
     }

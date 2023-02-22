@@ -5,18 +5,20 @@ const redis = new Redis({
     port: process.env.REDIS_PORT || 6379,
 });
 
+redis.flushall();
+
 const ttl = 60*60*24;
 const rankey = () => { return "" + (100000 + Math.floor(Math.random() * 900000)); }
 
 
 const myred = {
     new_key: (uid, n = 12) => {
-        console.log("n",n)
+        
         if (n < 0) { return { key: "", data: [] ,msg: "No free key !!" }; }
         const key = rankey();
         
         return redis.exists("uid_" + key).then(ans => {    
-            console.log("n",n,key,ans)
+            
             if (ans == 1) {
                 return myred.new_key(uid, n - 1);
             } else {
@@ -54,7 +56,7 @@ const myred = {
     add_key: (key, qkey) => {
         if (key == qkey) {return myred.json_data(key,"you are "+key ) }
         return redis.exists("uid_" + qkey).then(ans => {
-            console.log("add",key,qkey,ans)
+            
             let msg ="";
             if(ans){
                 msg=qkey+ " added";
@@ -70,9 +72,8 @@ const myred = {
             for (let i = 0; i < keys.length; i++) {
                 let k = keys[i]
                 redis.exists("uid_" + k ).then(ans => {
-                    console.log("clean",key,keys,ans);
                     if(ans != 1 ){
-                        redis.srem("fwl_" + key,k).then(rep=>{console.log("srem",rep)});
+                        redis.srem("fwl_" + key,k);
                     }
                 })
 
@@ -93,9 +94,9 @@ const myred = {
                         const fwl_keys = keys.map(element => {
                             return "data_"+element;
                           });
-                          console.log("fkeys",keys,fwl_keys);
+                          
                         return redis.mget(fwl_keys).then(data => {
-                            console.log(data);
+                            
                             for (let i = 0; i < keys.length; i++) {
                                 resp.fwl.push({ k: keys[i], d: data[i] || "" })
                             }

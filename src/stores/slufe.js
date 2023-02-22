@@ -9,199 +9,106 @@ const site_title = "SLUFE"
 
 
 let myPeer = null;
+let peers =[]
 let connections = [];
 let calls = [];
 let failed_peerid = [];
-let mystream = new MediaStream();
 
+
+
+const fakestream=()=>{
+
+    const canvas = Object.assign(document.createElement('canvas'), { width:320, height:200 });
+    canvas.getContext('2d').fillRect(0, 0, 320, 200);
+    const stream = canvas.captureStream();
+    const vtrack = stream.getVideoTracks()[0];
+    const videoTrack = Object.assign(vtrack, { enabled: false });
+    return new MediaStream([videoTrack]);
+}
+let mystream= fakestream();
 
 const new_peer = (id) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
+    var index = peers.map(function (e) { return e.id; }).indexOf(id);
     if (index < 0) {
-        useSlufeStore().peers.push({ id: id, keynum: "000000", stream: new MediaStream(), message: "" })
+        peers.push({ id: id, keynum: "000000", stream: fakestream(), message: "", connection:null, call:fakestream() })
     }
-
 }
+
+
 
 const remove_peer = (id) => {
-    console.log("rm peer", id)
-    remove_connection(id);
-    remove_call(id);
-    useSlufeStore().peers = useSlufeStore().peers.filter(function (obj) {
+    var index = peers.map(function (e) { return e.id; }).indexOf(id);
+    if (index >= 0) {
+    if(peers[index].connection && peers[index].connection.open){
+        peers[index].connection.close()
+    }
+    console.log(index,peers[index],peers[index].call)
+
+    if( peers[index].call != null ){
+     //   peers[index].call.close()
+    }
+    useSlufeStore().messages.push({ keynum: peers[index].keynum, msg:"peer closed", cat:"info" })
+    peers = peers.filter(function (obj) {
         return obj.id !== id;
     });
-
+   }
 }
 
-
-
-const get_my_stream = () => { return mystream; }
-const set_my_stream = (s) => { mystream = s; }
-
-const peer_exists = (id) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
-    return index != -1
-}
-const connection_exists = (id) => {
-    var index = connections.map(function (e) { return e.peer; }).indexOf(id);
-    console.log(index, id, connections[index])
-    if (connections[index], index != -1) { console.log("CXN:", connections[index], connections[index].open) }
-    return index != -1 && connections[index].open
-}
-
-const call_exists = (id) => {
-    console.log("ce",id,calls)
-    var index = calls.map(function (e) { return e.peer; }).indexOf(id);
-    return index != -1 && calls[index].active
-}
-
-const get_peer_keynum = (id) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
-    if (index < 0) {
-        return "000000";
-    }
-    return useSlufeStore().peers[index].keynum;
-}
-
-const set_peer_keynum = (id, keynum) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
-    console.log("setkey", index)
-    if (index >= 0) {
-        if (useSlufeStore().peers[index].keynum == "000000") {
-            new_message(keynum, "connected", "info")
-        }
-        useSlufeStore().peers[index].keynum = keynum
-
-    }
-}
-
-
-
-
-
-const set_peer_stream = (id, stream) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
-    if (index >= 0) {
-        useSlufeStore().peers[index].stream = stream
-
-    }
-}
-
-const set_peer_msg = (id, msg) => {
-    var index = useSlufeStore().peers.map(function (e) { return e.id; }).indexOf(id);
-    if (index >= 0) {
-        useSlufeStore().peers[index].message = msg
-    }
-}
-
-const new_message = (keynum, msg, cat) => {
-    if (keynum != "000000") {
-        useSlufeStore().messages.push({ keynum: keynum, msg: msg, cat: cat })
-    }
-}
 
 const new_connection = (cxn) => {
-    remove_connection(cxn.peer);
-    connections.push(cxn);
-}
-
-const remove_connection = (peerid) => {
-    connections = connections.filter(function (obj) {
-        if (obj.peer == peerid) { obj.close() }
-        return obj.peer !== peerid;
-    })
-}
-
-const new_call = (call) => {
-    remove_call(call.peer)
-    calls.push(call);
-}
-
-const remove_call = (peerid) => {
-    calls = calls.filter(function (obj) {
-        if (obj.peer == peerid) { obj.close() }
-        return obj.peer !== peerid;
-    })
-}
-
-const send_message_all = (msg) => {
-    let mykeynum = useSlufeStore().key;
-    new_message(mykeynum, msg, "me")
-    for (let i = 0; i < connections.length; i++) {
-        if (connections[i].open) {
-            connections[i].send({ keynum: mykeynum, msg: msg })
-        }
+    var index = peers.map(function (e) { return e.id; }).indexOf(cxn.peer);
+    if(peers[index].connection && peers[index].connection.open){
+        peers[index].connection.close()
     }
+    peers[index].connection =cxn
+    useSlufeStore().messages.push({ keynum: peers[index].keynum, msg:"connected", cat:"info" })
 }
 
-const send_callme_all = () => {
-    let mykeynum = useSlufeStore().key;
-    for (let i = 0; i < connections.length; i++) {
-        if (connections[i].open) {
-            connections[i].send({ keynum: mykeynum, ask: "callme" })
-        }
+
+const new_call = (call,stream) => {
+    var index = peers.map(function (e) { return e.id; }).indexOf(call.peer);
+    if(peers[index].call && peers[index].call.open){
+        peers[index].call.close()
     }
+    peers[index].call =call
+    peers[index].stream = stream
 }
 
-const call_all = () => {
-    console.log("mystream", mystream)
-    for (let i = 0; i < connections.length; i++) {
-        if (connections[i].open) {
-            peer_call(connections[i].peer)
-        }
-    }
-}
 
-const peer_connect = (id) => {
-    if (id && !failed_peerid.includes(id) && !connection_exists(id)) {
 
-        init_connection(myPeer.connect(id));
-    }
-}
 
-const peer_call = (id) => {
-    if (id && !failed_peerid.includes(id) && !call_exists(id)) {
-        let stream = mystream;
-        console.log("stream",stream);
-        if (stream == null || !stream.active) { stream = new MediaStream(); }
-        console.log("stream",stream);
-        init_call(myPeer.call(id, stream));
-    }
-}
+
 const init_mypeer = () => {
     myPeer = new Peer()
     myPeer.on('open', (id) => {
         useSlufeStore().set(id);
         failed_peerid.push(id);
         myPeer.on('connection', (cxn) => {
-            if ( !connection_exists(id)) {
+            var index = peers.map(function (e) { return e.id; }).indexOf(id);
+            if ( index>=0 && !peers[index].connection && !peers[index].connection.open) {
                 init_connection(cxn);
             }
         })
-        myPeer.on('call', (call) => {
-            
-            init_call(call);
-            
+        myPeer.on('call', (call) => {  
+            var index = peers.map(function (e) { return e.id; }).indexOf(id); 
+            if ( index>=0 && !peers[index].call && !peers[index].call.open) { 
+            init_call(call);    
             call.answer(mystream)
-            
+            }
         })
         myPeer.on('close', () => {
-            new_message(get_peer_keynum(id), "peer closed", "info")
             remove_peer(id);
         })
         myPeer.on('error', (err) => {
-            console.log(id, err);
+            console.log(err)
             let serr = err.toString();
             if (serr.length > 34) {
                 let err_msg = serr.substring(0, 32);
-
                 if (err_msg == "Error: Could not connect to peer") {
                     let err_id = serr.substring(33);
                     failed_peerid.push(err_id);
                 }
             }
-
-            new_message(get_peer_keynum(id), "peer error :" + err, "info")
             remove_peer(id);
         })
     })
@@ -209,84 +116,73 @@ const init_mypeer = () => {
 
 const reset_mypeer = () => {
 if (myPeer != null) {
-    for (let i = 0; i < connections.length; i++) {
-        connections[i].close();
+    for (let i = 0; i < peers.length; i++) {
+        if(peers[index].connection && peers[index].connection.open){
+            peers[index].connection.close()
+        }
+        if(peers[index].call && peers[index].call.open){
+            peers[index].call.close()
+        }
     }
-    for (let i = 0; i < calls.length; i++) {
-        calls[i].close();
-    }
-    connections = [];
-    calls = [];
-    useSlufeStore().peers.splice(0,  useSlufeStore().length)
+    peers.splice(0,  useSlufeStore().length)
     myPeer.destroy();
 }
 }
 
 const init_connection = (cxn) => {
-    console.log("INIT_CONNEXION ", cxn.peer);
-    let mykeynum = useSlufeStore().key;
+    
     new_peer(cxn.peer);
     cxn.on('open', () => {
         new_connection(cxn);
-        cxn.send({ keynum: mykeynum });
-        if (get_peer_keynum(cxn.peer) != "000000") {
-            new_message(get_peer_keynum(cxn.peer), "connected", "info")
-        }
-        peer_call(cxn.peer);
-
+        cxn.send({ keynum: useSlufeStore().key });
     })
     cxn.on('data', (data) => {
-        console.log("DATA :", data)
-
-        if (data.keynum) {
-            console.log("OK")
-            set_peer_keynum(cxn.peer, data.keynum)
-            
+        var index = peers.map(function (e) { return e.id; }).indexOf(cxn.peer);
+        if (data.keynum) {   
+            if (index >= 0) {
+                peers[index].keynum = data.keynum
+            } 
         }
         if (data.msg) {
-            set_peer_msg(cxn.peer, data.msg)
-            new_message(data.keynum, data.msg, "peer")
+            if (index >= 0) {
+                peers[index].message = data.msg
+            } 
+            useSlufeStore().messages.push({ keynum: peers[index].keynum, msg:data.msg, cat:"peer" })
         }
         if (data.ask && data.ask == "callme") {
-            console.log("CALLME");
-            peer_call(cxn.peer)
+           
         }
     })
     cxn.on('close', () => {
-        new_message(get_peer_keynum(cxn.peer), "connection closed", "info")
-        remove_connection(cxn.peer)
+        var index = peers.map(function (e) { return e.id; }).indexOf(cxn.peer);
+        useSlufeStore().messages.push({ keynum: peers[index].keynum, msg:"connection closed", cat:"info" })
+        remove_peer(cxn.peer);
 
     })
     cxn.on('error', (error) => {
-        console.log("ERR", error)
-        new_message(get_peer_keynum(cxn.peer), "connection error :" + error, "info")
-        remove_connection(cxn.peer)
+        useSlufeStore().messages.push({ keynum: peers[index].keynum, msg:"connection closed", cat:"info" })
+        remove_peer(cxn.peer);
     })
 }
 
 const init_call = (call) => {
-    console.log("INIT_CALL ", call.peer);
     new_peer(call.peer);
-
     call.on('stream', (stream => {
-        new_call(call);
-        set_peer_stream(call.peer, stream)
+        new_call(call,stream);
 
     }))
     call.on('close', () => {
-        //new_message(get_peer_keynum(call.peer), "call closed", "info")
-        remove_call(call.peer)
+        new_call(null,fakestream())
     })
     call.on('error', (err) => {
-        new_message(get_peer_keynum(call.peer), "call error :" + err, "info")
-        remove_call(call.peer)
+        new_call(null,fakestream())
     })
 
 }
 
 const synchro_fwl_peers = () => {
     let fwl = useSlufeStore().fwl
-    let peers = useSlufeStore().peers
+    
     let todelete = [];
 
     for (let i = 0; i < fwl.length; i++) {
@@ -308,11 +204,18 @@ const synchro_fwl_peers = () => {
         remove_peer(todelete[i]);
     }
     for (let i = 0; i < fwl.length; i++) {
-    if (fwl[i].d) {
-        peer_connect(fwl[i].d);
+    let id = fwl[i].d
+    if (id  && !failed_peerid.includes(id) ) { 
+        var index = peers.map(function (e) { return e.id; }).indexOf(id);
+        if (index<0 || !(peers[index].connection && peers[index].connection.open) ) {
+            init_connection(myPeer.connect(id));
+        }
+        if (index<0 || !(peers[index].call && peers[index].call.open) ) {
+            console.log("s",useSlufeStore().stream)
+            init_call(myPeer.call(id, mystream))
+        }
     }}
-    console.log("CXNS",connections)
-    console.log("CALLS",calls)
+    useSlufeStore().update_flux(peers);
 
 }
 
@@ -326,8 +229,9 @@ export const useSlufeStore = defineStore('slufe', {
         fwl: [],
         site_url: site_url,
         site_title: site_title,
-        peers: [],
+        flux: [],
         messages: []
+
     }),
     actions: {
         update_data(data) {
@@ -362,36 +266,30 @@ export const useSlufeStore = defineStore('slufe', {
                 this.update_data(res.data);
             })
         },
-        connect(id) {
-            if (id) {
-                peer_connect(id);
-            }
-        },
-        call(id) {
-            if (id) {
-                peer_call(id);
-            }
-        },
-        update_peers(p) {
-            this.peers.splice(0, this.peers.length, ...p)
-            console.log("this", this.peers)
-
+        update_flux(p) {
+            this.flux.splice(0, this.flux.length, ...p)
         },
         update_messages(m) {
             this.messages.splice(0, this.messages.length, ...m)
         },
-        update_peerid(id) {
-            this.peerid = id;
-        },
-        set_keynum(k) {
-            set_my_keynum(k);
-        },
+
         send_message(msg) {
-            send_message_all(msg);
+            this.messages.push({ keynum: this.keynum, msg:msg, cat:"me" })
+            for (let i = 0; i < peers.length; i++) {
+                if(peers[i].connection && this.peers[i].connection.open){
+                    peers[i].connection.send({ keynum: mykeynum, msg: msg })
+                }
+            }
         },
-        stream(stream) {
-            set_my_stream(stream);
-            call_all();
+        stream(s) {
+            console.log("STREAM",stream)
+            mystream=s;
+            for (let i = 0; i < peers.length; i++) {
+                if(peers[i].call && peers[i].call.open){
+                    //this.peers[index].call.close();
+                    init_call(myPeer.call(peers[i].id, s))
+                }
+            }
         },
         init_peer() {
             reset_mypeer();
