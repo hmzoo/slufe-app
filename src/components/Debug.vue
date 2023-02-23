@@ -2,11 +2,21 @@
 import { storeToRefs } from "pinia";
 import { useSlufeStore } from '@/stores/slufe'
 
-const { getflux } = storeToRefs(useSlufeStore());
+const { getflux, fwl } = storeToRefs(useSlufeStore());
 
 </script>
 
 <template>
+<div>
+<h4>FWL</H4>
+    <i-table border>
+      <tbody>
+       <tr v-for="item in fwl">
+       <th>{{item.k}}</th><td>{{item.d}}</td>
+       </tr>
+      </tbody>
+       </i-table>
+<h4>FLUX</H4>
   <i-table border>
       <tbody>
        <tr v-for="item in getflux" :key="item.keynum">
@@ -16,4 +26,5 @@ const { getflux } = storeToRefs(useSlufeStore());
        </tr>
       </tbody>
        </i-table>
+       </div>
 </template>

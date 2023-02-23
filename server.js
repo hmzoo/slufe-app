@@ -146,7 +146,7 @@ app.get('/clean', (req, res) => {
 
 
 app.get('^/:qkey([0-9]{6})', function (req, res) {
-  add_session(req,req.params.qkey).then(rep =>{res.json(rep);})
+  add_session(req,req.params.qkey).then(rep =>{res.redirect('/');})
 });
 
 

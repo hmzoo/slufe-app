@@ -3,7 +3,7 @@ import { ref ,onUpdated } from 'vue'
 import { storeToRefs } from "pinia";
 import { useSlufeStore } from '@/stores/slufe'
 const mypeer = useSlufeStore()
-const { messages } = storeToRefs(mypeer);
+const { getmessages } = storeToRefs(mypeer);
 const qmsg = ref("");
 const msg_list = ref(null);
 const msg_list_lock = ref(false);
@@ -27,7 +27,7 @@ if(msg_list.value && !msg_list_lock.value) {
 <template>
   <div class="msg_box">
     <div  class="msg_list" ref="msg_list" @focus="msg_list_lock = true" @blur="msg_list_lock = true" >
-    <span v-for="msg in messages" class="msg"><small><b>{{ msg.keynum}}:</b></small> {{ msg.msg}} </span>
+    <span v-for="msg in getmessages" class="msg"><small><b>{{ msg.keynum}}:</b></small> {{ msg.msg}} </span>
     </div>
     <div class="msg_input">
     <i-form @submit="send()">

@@ -10,13 +10,11 @@ const slufe = useSlufeStore();
 
 
 const copylink = ()=>{
-  navigator.clipboard.writeText(keynum.keylink);
+  navigator.clipboard.writeText(slufe.keylink);
 }
 
 const reset = ()=>{
-  
   slufe.renew();
-  slufe.init_peer();
 }
 
 

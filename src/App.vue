@@ -6,18 +6,18 @@ import Chat from '@/components/Chat.vue';
 import Peers from '@/components/Peers.vue';
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
+import Flux from '@/components/Flux.vue';
+import Debug from '@/components/Debug.vue';
 
 import { useSlufeStore } from '@/stores/slufe'
 import { useMediaStore } from '@/stores/media'
 
 const slufe = useSlufeStore()
 const media = useMediaStore()
-
-const { flux,messages } = storeToRefs(slufe);
+const { camstatus,micstatus } = storeToRefs(media);
 
 
 watch( ()=>media.stream,(data) =>{
-  
   slufe.stream(data);
 })
 
@@ -59,11 +59,11 @@ onMounted(() => {
         <i-column xs="3" lg="2"><b>{{ slufe.site_title }}</b></i-column>
         <i-column xs="3" lg="1"><b class="_font-size:xl">{{ slufe.key }}</b></i-column>
         <i-column xs="3" lg="1"  class="_text-align:right" >
-        <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam" />
+        <IcoBtn ico="cam" :val="camstatus" @click="media.switchcam" />
         </i-column>
     
         <i-column xs="3" lg="1" class="_text-align:left" >
-        <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
+        <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic"/>
         </i-column>
         
         <i-column xs="6" lg="3"><i-form @submit="callNumber"><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
@@ -83,33 +83,24 @@ onMounted(() => {
        <i-container>
 
 
-    <i-row>
-       <i-column xs="12"> 
-       <i-table border>
-      <tbody>
-       <tr v-for="item in slufe.fwl">
-       <th>{{item.k}}</th><td>{{item.d}}</td>
-       <td><i-button @click="slufe.connect(item.d)" size="sm">CONNECT</i-button></td>
-       <td><i-button @click="slufe.call(item.d)" size="sm">CALL</i-button></td>
-       </tr>
-      </tbody>
-       </i-table>
-       </i-column>    
-    </i-row>
+
        
        <i-row>
-       <i-column xs="6">
-       <Chat  />
-      
-       </i-column>    
-       <i-column xs="6">
-<div style="height:500px"></div>
+       <i-column xs="12">
+     
+<Flux />
        </i-column>
+    </i-row>
+
+            <i-row>
+       <i-column xs="12"> 
+      <Chat  />
+       </i-column>    
     </i-row>
     
         <i-row>
-       <i-column xs="12"> <h3>peers</h3>
-      <Peers :peers="flux" />
+       <i-column xs="12"> <h3>Debug</h3>
+      <Debug  />
        </i-column>    
     </i-row>
 

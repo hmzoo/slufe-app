@@ -86,7 +86,11 @@ export const useMediaStore = defineStore('media',{
         }
    
         
-      }
+      },
+      getters: {
+        camstatus: (state) => { return state.camera.beOn },
+        micstatus: (state) => { return state.micro.beOn },
+    }
 
 
 
