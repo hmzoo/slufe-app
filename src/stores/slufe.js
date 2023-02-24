@@ -14,17 +14,34 @@ let mymessage ="";
 
 
 
-const fakestream=()=>{
-    const canvas = Object.assign(document.createElement('canvas'), { width:320, height:200 });
+const createfakestream=()=>{
+    let color1 = "#24A8AC",color2="#0087CB";
+    let numberOfStripes = 30;
+    let w = 640
+    let h=400;
+    const canvas = Object.assign(document.createElement('canvas'), { width:w, height:h });
     const cxt=canvas.getContext('2d');
-    cxt.fillStyle = 'grey';
-    cxt.fillRect(0, 0, 320, 200);
+    //cxt.fillStyle = 'grey';
+    //cxt.fillRect(0, 0, 320, 200);
+    for (var i=0;i < numberOfStripes;i++){
+        var thickness = h / numberOfStripes;
+        cxt.beginPath();
+        cxt.strokeStyle = i % 2?color1:color2;
+        cxt.lineWidth =thickness;
+        
+        cxt.moveTo(0,i*thickness + thickness/2);
+        cxt.lineTo(w,i*thickness + thickness/2);
+        cxt.stroke();
+    }
+
+
     const stream = canvas.captureStream();
     const vtrack = stream.getVideoTracks()[0];
     const videoTrack = Object.assign(vtrack, { enabled: true });
     return new MediaStream([videoTrack]);
 }
-let mystream= fakestream();
+let fakestream = createfakestream();
+let mystream = fakestream;
 
 const new_peer = (id) => {
     var index = peers.map(function (e) { return e.id; }).indexOf(id);
@@ -34,7 +51,7 @@ const new_peer = (id) => {
         let ifwl = fwl.map(function (e) { return e.d; }).indexOf(id);
         if(ifwl>=0){keynum=fwl[ifwl].k}
         
-       index=peers.push({ id: id, keynum: keynum, stream: fakestream(), message: "", connection:null, call:null, connected:false })-1;
+       index=peers.push({ id: id, keynum: keynum, stream: fakestream, message: "", connection:null, call:null, connected:false })-1;
     }
     return peers[index];
 }
@@ -71,14 +88,16 @@ const new_connection = (cxn) => {
 
 
 const new_call = (call,stream) => {
+    console.log("newstream",call,stream)
     if(call){
     var index = peers.map(function (e) { return e.id; }).indexOf(call.peer);
     if(peers[index].call && peers[index].call.open){
         peers[index].call.close()
     }
-    peers[index].call =call
-    peers[index].stream = stream
+
 }
+peers[index].call =call
+peers[index].stream = stream
 }
 
 
@@ -94,7 +113,8 @@ const init_mypeer = () => {
                 init_connection(cxn);
         })
         myPeer.on('call', (call) => {  
-            init_call(call);    
+            init_call(call);
+            mystream = mystream || fakestream; 
             call.answer(mystream)
         })
         myPeer.on('close', () => {
@@ -172,16 +192,17 @@ const init_call = (call) => {
     if(call){
     let p = new_peer(call.peer);
     call.on('stream', (stream => {
+        stream =stream || fakestream;
         new_call(call,stream);
 
     }))
     call.on('close', () => {
         p.call=null;
-        p.stream=fakestream();
+        p.stream=fakestream;
     })
     call.on('error', (err) => {
         p.call=null;
-        p.stream=fakestream();
+        p.stream=fakestream;
     })
 }
 
@@ -305,7 +326,8 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {          
-            mystream=s || fakestream();
+            mystream=s || fakestream;
+            console.log("mystream",mystream)
             for (let i = 0; i < peers.length; i++) {
                 if(myPeer && peers[i].connection && peers[i].connection.open){
                     init_call(myPeer.call(peers[i].id, mystream))
@@ -326,6 +348,7 @@ export const useSlufeStore = defineStore('slufe', {
         keylink: (state) => { return state.site_url + "/" + state.key },
         getflux: (state) => { return state.flux },
         getmessages: (state) => { return state.messages },
+        getnf: (state) => { return state.flux.length },
     }
 
 

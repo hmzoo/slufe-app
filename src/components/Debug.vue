@@ -7,6 +7,8 @@ const { getflux, fwl } = storeToRefs(useSlufeStore());
 </script>
 
 <template>
+    <i-row>
+      <i-column xs="12"> <h3>Debug</h3>
 <div>
 <h4>FWL</H4>
     <i-table border>
@@ -27,4 +29,6 @@ const { getflux, fwl } = storeToRefs(useSlufeStore());
       </tbody>
        </i-table>
        </div>
+             </i-column>    
+    </i-row>
 </template>

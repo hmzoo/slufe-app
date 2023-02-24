@@ -17,3 +17,9 @@ const { getflux } = storeToRefs(useSlufeStore());
       </tbody>
        </i-table>
 </template>
+<style>
+video {
+  width: 100%    !important;
+  height: auto   !important;
+}
+</style>

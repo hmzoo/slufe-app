@@ -1,10 +1,9 @@
 <script setup>
+import { ref  } from 'vue'
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
 import { useSlufeStore } from '@/stores/slufe';
-
-
-
+import TOS from '@/components/TOS.vue';
 
 const slufe = useSlufeStore();
 
@@ -29,7 +28,8 @@ const reset = ()=>{
  <div><IcoBtn ico="dice"  @click="reset()"/> Get a new Number</div>
 <div><small>Link to your space :</small><br/><IcoBtn ico="copy" @click="copylink()" /> {{slufe.keylink}}</div>
 </i-card>
-    
+<br/>
+<TOS />
 
 </div>
 

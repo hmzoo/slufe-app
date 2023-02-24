@@ -9,12 +9,14 @@ import IcoBtn from '@/components/IcoBtn.vue';
 import Flux from '@/components/Flux.vue';
 import Debug from '@/components/Debug.vue';
 
+
 import { useSlufeStore } from '@/stores/slufe'
 import { useMediaStore } from '@/stores/media'
 
 const slufe = useSlufeStore()
 const media = useMediaStore()
 const { camstatus,micstatus } = storeToRefs(media);
+const { getnf } = storeToRefs(slufe);
 
 
 watch( ()=>media.stream,(data) =>{
@@ -66,7 +68,7 @@ onMounted(() => {
         <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic"/>
         </i-column>
         
-        <i-column xs="6" lg="3"><i-form @submit="callNumber"><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
+        <i-column xs="6" lg="3"><i-form @submit="callNumber" v-if="getnf >1 "><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
         <i-column xs="4" lg="3"> <small>{{ slufe.msg}}</small></i-column>
 
     <i-column xs="1" class="_text-align:right"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
@@ -83,26 +85,22 @@ onMounted(() => {
        <i-container>
 
 
-
+  <i-row middle  >
+       <i-column xs="6" class="_text-align:center" >
        
-       <i-row>
-       <i-column xs="12">
-     
-<Flux />
-       </i-column>
-    </i-row>
+       <div><i-form @submit="callNumber" v-if="getnf < 2 "><i-input v-model="qkey" placeholder="Number .." type="Number" size="lg" ><template #append><i-button type="submit" size="lg" color="primary">CALL</i-button></template></i-input></i-form></div>
+          </i-column>
+          <i-column xs="6"  >
+          <div style="width:304px;height:500px;margin:auto;padding-top:50px"  ><Camera /></div>
+          </i-column>
+       </i-row>    
 
-            <i-row>
-       <i-column xs="12"> 
-      <Chat  />
-       </i-column>    
-    </i-row>
-    
-        <i-row>
-       <i-column xs="12"> <h3>Debug</h3>
-      <Debug  />
-       </i-column>    
-    </i-row>
+<Flux v-if="getnf >1" />
+<Chat  v-if="getnf >1" />
+
+
+
+
 
     </i-container>
     </i-layout-content>

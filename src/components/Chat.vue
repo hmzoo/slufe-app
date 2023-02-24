@@ -25,6 +25,8 @@ if(msg_list.value && !msg_list_lock.value) {
 </script>
 
 <template>
+            <i-row>
+       <i-column xs="12">
   <div class="msg_box">
     <div  class="msg_list" ref="msg_list" @focus="msg_list_lock = true" @blur="msg_list_lock = true" >
     <span v-for="msg in getmessages" class="msg"><small><b>{{ msg.keynum}}:</b></small> {{ msg.msg}} </span>
@@ -35,6 +37,8 @@ if(msg_list.value && !msg_list_lock.value) {
     </i-form> 
     </div> 
   </div>
+         </i-column>    
+    </i-row>
 </template>
 
 <style>
