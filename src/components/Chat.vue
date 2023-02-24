@@ -50,7 +50,6 @@ if(msg_list.value && !msg_list_lock.value) {
   min-height: 50px;
   height:100px;
   overflow-y: scroll
-
 }
 .msg_input {
   margin : 3px 0px
