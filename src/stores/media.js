@@ -62,7 +62,8 @@ export const useMediaStore = defineStore('media',{
                   this.camera.label= this.videoDevices[this.camera.index].label
                 }
                 this.constrains= {
-                  audio: {deviceId:{exact:this.micro.id}},
+                 // audio: {deviceId:{exact:this.micro.id}},
+                 audio : this.audioDevices.length > 0,
                   video: {
                     deviceId:{exact:this.camera.id},
                   //  facingMode: state.camera.mobile,
@@ -75,11 +76,13 @@ export const useMediaStore = defineStore('media',{
                   .getUserMedia(this.constrains)
                   .then(s => {
                     //console.log('media streaming', s)
+                  //  console.log(this.constrains)
                     this.stream= s;
                    })
                   .catch(error => {
                     this.stop();
                     this.error = "⚠\n"+error + "\nMay the browser didn't support or there is some errors."
+                    //console.log(this.constrains)
              
                   })
               }else{this.stop();}})

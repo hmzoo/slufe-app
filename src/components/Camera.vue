@@ -27,13 +27,12 @@ onMounted(() => {
 
   <div style="width:270px;display: inline-block" >
     <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam"/>
-    <span class="camText" v-if="media.camera.beOn" >{{ media.camera.label}}</span>
-    <IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn"/>
+    <span style="width:24px;display: inline-block"></span>
+    <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
+    <div style="float:right"><IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn"/></div>
   </div><br/>
   <div style="width:270px;display: inline-block;margin-bottom:5px" >
-   <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
-    <span class="camText" v-if="media.micro.beOn" >{{ media.micro.label}}</span>
-    <IcoBtn ico="swap"  @click="media.swapmic" v-if="media.micro.beOn"/>
+ <span class="camText" v-if="media.camera.beOn" >{{ media.camera.label}}</span>
   </div>
   <br/>
     <div v-if="media.error.length > 0 || !media.camera.beOn">
