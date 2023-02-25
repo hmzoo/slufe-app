@@ -74,7 +74,7 @@ export const useMediaStore = defineStore('media',{
                 navigator.mediaDevices
                   .getUserMedia(this.constrains)
                   .then(s => {
-                    console.log('media streaming', s)
+                    //console.log('media streaming', s)
                     this.stream= s;
                    })
                   .catch(error => {
@@ -91,7 +91,7 @@ export const useMediaStore = defineStore('media',{
               track.stop()
             })
           }
-            console.log("stop stream ",this.stream)
+            //console.log("stop stream ",this.stream)
             this.stream = createfakestream();
         },
         destroy(){
@@ -101,7 +101,7 @@ export const useMediaStore = defineStore('media',{
               track.stop()
             })
           }
-            console.log("stop stream ",this.stream)
+            //console.log("stop stream ",this.stream)
             this.stream = null;
         },
         switchcam(){

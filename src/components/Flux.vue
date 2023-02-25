@@ -23,7 +23,7 @@ const { getflux ,getnf,showme} = storeToRefs(useSlufeStore());
        <i-column xs="12" lg="12" v-for="item in getflux" :key="item.keynum" >
        <div style="width:100%" v-if="!item.me " >
        <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }}</i></span></div>
-         <video :srcObject="item.stream"  autoplay style="width:100%" :muted="item.me"></video>
+         <video :srcObject="item.stream"  autoplay style="width:100%" ></video>
          </div>
        </i-column>
     

@@ -89,7 +89,7 @@ const new_connection = (cxn) => {
 
 
 const new_call = (call,stream) => {
-    console.log("newstream",call,stream)
+   
     if(call){
     var index = peers.map(function (e) { return e.id; }).indexOf(call.peer);
     if(peers[index].call && peers[index].call.open){
@@ -309,7 +309,7 @@ export const useSlufeStore = defineStore('slufe', {
             tab.push({ id:peerid, keynum: this.key, stream: mystream, message: mymessage,connected:connected,me: true})
 
             this.flux=tab.sort((a, b) => (a.keynum > b.keynum) ? 1 : -1)
-            console.log("TAB",tab)
+            
           
         },
         update_messages(m) {
@@ -331,7 +331,7 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {          
-            console.log("new my stream", s)
+            
             for (let i = 0; i < peers.length; i++) {
                 if(myPeer && peers[i].call&& peers[i].call.open){
                  

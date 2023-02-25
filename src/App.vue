@@ -5,7 +5,6 @@ import { ref , onMounted,watch ,onBeforeUnmount} from 'vue'
 import { storeToRefs } from "pinia";
 import Settings from '@/components/Settings.vue';
 import Chat from '@/components/Chat.vue';
-import ChatInput from '@/components/ChatInput.vue';
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
 import Flux from '@/components/Flux.vue';
@@ -43,7 +42,7 @@ const callNumber= ()=>{
 }
 
 const onAccept = ()=>{
-  console.log("COOKIES OK");
+  
 }
 
 const send =()=>{
@@ -62,7 +61,7 @@ let preferences = [
 ];
 
 onMounted(() => {
-  console.log(localStorage.getItem('cookie-comply'))
+ 
   cookieok.value=localStorage.getItem('cookie-comply') != null ;
    slufe.init_peer();
    slufe.hb();
@@ -94,9 +93,9 @@ const copykey = ()=>{
         
         
         <i-column xs="7" lg="3"><i-form @submit="callNumber" ><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
-        <i-column xs="4" lg="3"> <small>{{ slufe.msg}}</small></i-column>
+        <i-column xs="3" lg="3"> <small>{{ slufe.msg}}</small></i-column>
 
-    <i-column xs="1" class="_text-align:right"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
+    <i-column xs="1" class="_text-align:center"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
     </i-row>
     </i-container>
     </i-layout-header>
@@ -149,7 +148,7 @@ const copykey = ()=>{
              <i-column  xs="12" lg="9" >
              <div class="msg_input"><IcoBtn ico="cam" :val="camstatus" @click="media.switchcam" /></div>
             <div class="msg_input"> <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic"/></div>
-          <div class="msg_input" style="width:60%">
+          <div class="msg_input" style="width:50%">
     <i-form @submit="send()">
      <i-input v-model="qmsg" placeholder="message .." type="text" size="sm" style=""><template #append><i-button type="submit" size="sm" color="secondary" style="padding:2px">SEND</i-button></template></i-input>
     </i-form> 
