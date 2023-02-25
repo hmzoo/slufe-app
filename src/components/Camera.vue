@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useMediaStore } from '@/stores/media'
 
 import IcoBtn from '@/components/IcoBtn.vue';
@@ -18,7 +18,7 @@ onMounted(() => {
   
     media.start();
     })
-onBeforeUnmount(() => media.stop())
+
 </script>
 
 <template>

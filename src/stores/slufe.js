@@ -128,7 +128,7 @@ const init_mypeer = () => {
                 let err_msg = serr.substring(0, 32);
                 if (err_msg == "Error: Could not connect to peer") {
                     let err_id = serr.substring(33);
-                    failed_peerid.push(err_id);
+                   // failed_peerid.push(err_id);
                 }
             }
             remove_peer(id);
@@ -258,7 +258,8 @@ export const useSlufeStore = defineStore('slufe', {
         site_url: site_url,
         site_title: site_title,
         flux: [],
-        messages: []
+        messages: [],
+        showme: true
 
     }),
     actions: {
@@ -308,6 +309,7 @@ export const useSlufeStore = defineStore('slufe', {
             tab.push({ id:peerid, keynum: this.key, stream: mystream, message: mymessage,connected:connected,me: true})
 
             this.flux=tab.sort((a, b) => (a.keynum > b.keynum) ? 1 : -1)
+            console.log("TAB",tab)
           
         },
         update_messages(m) {
@@ -330,6 +332,12 @@ export const useSlufeStore = defineStore('slufe', {
         },
         stream(s) {          
             console.log("new my stream", s)
+            for (let i = 0; i < peers.length; i++) {
+                if(myPeer && peers[i].call&& peers[i].call.open){
+                 
+                    peers[i].call.close();
+                }
+            }
             if(mystream){
             mystream.getTracks().forEach(track => {
                 track.stop()
@@ -348,6 +356,9 @@ export const useSlufeStore = defineStore('slufe', {
                     init_call(myPeer.call(peers[i].id, mystream))
                 }
             }
+        },
+        switchshowme(){
+            this.showme=!this.showme;
         },
         init_peer() {
             reset_mypeer();

@@ -30,7 +30,7 @@ watch( getmessages.value,(data)=>{
 </script>
 
 <template>
-            <i-row left>
+            <i-row center>
 
 
 

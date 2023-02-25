@@ -44,7 +44,12 @@ export const useMediaStore = defineStore('media',{
     actions: {
         start(){   
            this.error ="";    
-           this.stop();
+           if(this.stream){
+            this.stream.getTracks().forEach(track => {
+              //console.log('stopping', track)
+              track.stop()
+            })
+          }
             navigator.mediaDevices.enumerateDevices().then(devices => {
                 this.audioDevices = devices.filter(device => device.kind === 'audioinput')
                 if (this.audioDevices.length > 0) {
@@ -88,8 +93,16 @@ export const useMediaStore = defineStore('media',{
           }
             console.log("stop stream ",this.stream)
             this.stream = createfakestream();
-     
-          
+        },
+        destroy(){
+          if(this.stream){
+            this.stream.getTracks().forEach(track => {
+              //console.log('stopping', track)
+              track.stop()
+            })
+          }
+            console.log("stop stream ",this.stream)
+            this.stream = null;
         },
         switchcam(){
           this.camera.beOn=!this.camera.beOn;

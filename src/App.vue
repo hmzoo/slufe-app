@@ -1,7 +1,7 @@
 <script setup>
 import logo from '@/assets/logo.png';
 import logo_small from '@/assets/logo_small.png';
-import { ref , onMounted,watch } from 'vue'
+import { ref , onMounted,watch ,onBeforeUnmount} from 'vue'
 import { storeToRefs } from "pinia";
 import Settings from '@/components/Settings.vue';
 import Chat from '@/components/Chat.vue';
@@ -43,7 +43,7 @@ const callNumber= ()=>{
 }
 
 const onAccept = ()=>{
-  console.log("OK");
+  console.log("COOKIES OK");
 }
 
 const send =()=>{
@@ -72,6 +72,7 @@ onMounted(() => {
     slufe.synchro(); 
   }, 3000);
 });
+onBeforeUnmount(() => media.destroy())
 
 const copylink = ()=>{
   navigator.clipboard.writeText(slufe.keylink);
@@ -92,7 +93,7 @@ const copykey = ()=>{
         <i-column xs="6" lg="2" class="_text-align:left number">{{ slufe.key }}</i-column>
         
         
-        <i-column xs="6" lg="3"><i-form @submit="callNumber" ><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
+        <i-column xs="7" lg="3"><i-form @submit="callNumber" ><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
         <i-column xs="4" lg="3"> <small>{{ slufe.msg}}</small></i-column>
 
     <i-column xs="1" class="_text-align:right"><i-hamburger-menu v-model="open" animation="arrow-right" color="dark" /></i-column>
@@ -158,6 +159,11 @@ const copykey = ()=>{
     </i-row>
            </i-container>
     </i-layout-footer>
+    <vue-cookie-comply
+        :preferences="preferences"
+        @on-accept-all-cookies="onAccept"
+     
+      />
     
 </i-layout>
 
