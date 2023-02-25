@@ -75,6 +75,7 @@ export const useMediaStore = defineStore('media',{
                 navigator.mediaDevices
                   .getUserMedia(this.constrains)
                   .then(s => {
+                    console.log("constrains : ",this.constrains.audio,this.constrains.video)
                     //console.log('media streaming', s)
                   //  console.log(this.constrains)
                     this.stream= s;
@@ -82,7 +83,8 @@ export const useMediaStore = defineStore('media',{
                   .catch(error => {
                     this.stop();
                     this.error = "⚠\n"+error + "\nMay the browser didn't support or there is some errors."
-                    //console.log(this.constrains)
+                    console.log("constrains : ",this.constrains.audio,this.constrains.video)
+                    console.log(error)
              
                   })
               }else{this.stop();}})
