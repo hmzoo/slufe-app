@@ -22,7 +22,9 @@ const { getnf } = storeToRefs(slufe);
 
 
 watch( ()=>media.stream,(data) =>{
+  if(data){
   slufe.stream(data);
+  }
 })
 watch( ()=>slufe.key,(data) =>{
   open.value=false

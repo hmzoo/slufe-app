@@ -49,7 +49,8 @@ export const useMediaStore = defineStore('media',{
               //console.log('stopping', track)
               track.stop()
             })
-          }
+          } 
+            this.stream=null;
             navigator.mediaDevices.enumerateDevices().then(devices => {
                 this.audioDevices = devices.filter(device => device.kind === 'audioinput')
                 if (this.audioDevices.length > 0) {
