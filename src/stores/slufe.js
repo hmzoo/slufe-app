@@ -40,8 +40,8 @@ const createfakestream=()=>{
     const videoTrack = Object.assign(vtrack, { enabled: true });
     return new MediaStream([videoTrack]);
 }
-let fakestream = createfakestream();
-let mystream = fakestream;
+
+let mystream = createfakestream();
 
 const new_peer = (id) => {
     var index = peers.map(function (e) { return e.id; }).indexOf(id);
@@ -51,7 +51,7 @@ const new_peer = (id) => {
         let ifwl = fwl.map(function (e) { return e.d; }).indexOf(id);
         if(ifwl>=0){keynum=fwl[ifwl].k}
         
-       index=peers.push({ id: id, keynum: keynum, stream: fakestream, message: "", connection:null, call:null, connected:false })-1;
+       index=peers.push({ id: id, keynum: keynum, stream: null, message: "", connection:null, call:null, connected:false })-1;
     }
     return peers[index];
 }
@@ -62,11 +62,12 @@ const remove_peer = (id) => {
     var index = peers.map(function (e) { return e.id; }).indexOf(id);
     if (index >= 0) {
     if(peers[index].connection && peers[index].connection.open){
-        peers[index].connection.close()
+        peers[index].connection.close();
+        if( peers[index].call &&  peers[index].call.open){
+            peers[index].call.close()
+           }
     }
-    if( peers[index].call &&  peers[index].call.open){
-     peers[index].call.close()
-    }
+
     // useSlufeStore().message( peers[index].keynum, "peer closed", "info")
     peers = peers.filter(function (obj) {
         return obj.id !== id;
@@ -114,7 +115,7 @@ const init_mypeer = () => {
         })
         myPeer.on('call', (call) => {  
             init_call(call);
-            mystream = mystream || fakestream; 
+           
             call.answer(mystream)
         })
         myPeer.on('close', () => {
@@ -192,17 +193,17 @@ const init_call = (call) => {
     if(call){
     let p = new_peer(call.peer);
     call.on('stream', (stream => {
-        stream =stream || fakestream;
+       
         new_call(call,stream);
 
     }))
     call.on('close', () => {
         p.call=null;
-        p.stream=fakestream;
+        
     })
     call.on('error', (err) => {
         p.call=null;
-        p.stream=fakestream;
+        
     })
 }
 
@@ -222,7 +223,9 @@ const synchro_fwl_peers = () => {
             init_call(myPeer.call(f.d, mystream))
         }else{
             // SET PEER KEYNUM
-            
+            if(peers[index].call==null){
+                init_call(myPeer.call(f.d, mystream))
+            }
             peers[index].keynum=f.k
         }
     }
@@ -326,8 +329,20 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {          
-            mystream=s || fakestream;
-            console.log("mystream",mystream)
+            console.log("new my stream", s)
+            if(mystream){
+            mystream.getTracks().forEach(track => {
+                track.stop()
+              })
+              mystream =null;
+            }
+            if(s == null){
+                 mystream=createfakestream();
+            }else{
+                mystream = s
+            }
+        
+         
             for (let i = 0; i < peers.length; i++) {
                 if(myPeer && peers[i].connection && peers[i].connection.open){
                     init_call(myPeer.call(peers[i].id, mystream))

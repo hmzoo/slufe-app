@@ -1,70 +1,85 @@
 <script setup>
-import { ref ,onUpdated } from 'vue'
+import { ref,watch} from 'vue'
 import { storeToRefs } from "pinia";
 import { useSlufeStore } from '@/stores/slufe'
-const mypeer = useSlufeStore()
-const { getmessages } = storeToRefs(mypeer);
-const qmsg = ref("");
+const slufe = useSlufeStore()
+const { getmessages } = storeToRefs(slufe);
+
 const msg_list = ref(null);
 const msg_list_lock = ref(false);
 
-const send =()=>{
-  mypeer.send_message(qmsg.value);
-  qmsg.value="";
-}
-
-onUpdated(() => {
-if(msg_list.value && !msg_list_lock.value) {
-  let h=msg_list.value.scrollHeight;
+watch( getmessages.value,(data)=>{
+  
+  if(msg_list.value && !msg_list_lock.value) {
+   let h=msg_list.value.scrollHeight;
   msg_list.value.scrollTop=h;
-}
+  }
+})
 
-});
+
+// onUpdated(() => {
+//   console.log("updated",msg_list.value)
+// if(msg_list.value && !msg_list_lock.value) {
+//   let h=msg_list.value.scrollHeight;
+//   msg_list.value.scrollTop=h;
+// }
+
+// });
 
 
 </script>
 
 <template>
-            <i-row>
-       <i-column xs="12">
-  <div class="msg_box">
-    <div  class="msg_list" ref="msg_list" @focus="msg_list_lock = true" @blur="msg_list_lock = true" >
-    <span v-for="msg in getmessages" class="msg"><small><b>{{ msg.keynum}}:</b></small> {{ msg.msg}} </span>
+            <i-row left>
+
+
+
+       <i-column  xs="12" lg="6">
+  <div class="msg_box _text-align:left" >
+    <div  class="msg_list" ref="msg_list" @focus="msg_list_lock = true" @blur="msg_list_lock = false" >
+    <span v-for="msg in getmessages" :class="'msg '+msg.cat"><small><b>{{ msg.keynum}}:</b></small> {{ msg.msg}} </span>
+    <br/>
     </div>
-    <div class="msg_input">
-    <i-form @submit="send()">
-     <i-input v-model="qmsg" placeholder="message .." type="text" size="sm" style=""><template #append><i-button type="submit" size="sm" color="secondary" style="padding:2px">SEND</i-button></template></i-input>
-    </i-form> 
-    </div> 
+   
   </div>
-         </i-column>    
+         </i-column>
+        
     </i-row>
 </template>
 
 <style>
 .msg_box {
-
+ 
+  height:145px;
 }
 .msg_list {
+   background-color:#ffffff;
   border: 1px solid #32a1ce;
   min-height: 50px;
   height:100px;
   overflow-y: scroll
 }
-.msg_input {
-  margin : 3px 0px
-  
-}
+
 
 .msg {
   display:block;
-  font-family:monospace;
+  font-family:'Comic Neue', sans-serif;
   font-size: 0.9em;
   line-height: 1em;
 }
 
-.msg_message {
-
+.me {
+  color:#3b4a9e;
 }
+
+.peer {
+  color:#721034;
+}
+
+.info {
+  color:#333333;
+}
+
+
 
 </style>

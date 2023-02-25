@@ -12,17 +12,21 @@ const visible = ref(false);
     General Conditions of Use
 </i-button>
 
-<i-modal v-model="visible" size="lg" class="_font-size:sm">
+<i-modal v-model="visible" size="lg" class="_font-size:sm" color="info" >
+
+   
+      
+    
 <div class="tos">
-<h1>General Conditions of Use of the {{ site_title }} website</h1>
-<h2>Warning</h2>
+<h2> General Conditions of Use of the {{ site_title }} website </h2>
+<h3>Warning</h3>
 <ul>
 <li>Remember that the internet is NOT private.</li>
 <li>{{ site_title }} does not record any video streams.</li>
 <li>You may think you're just chatting to a friend, but videos can all be copied, saved or even printed out by other people.</li>
 <li>Never write or upload anything that you would not want seen by strangers, much less family and friends.</li>
 </ul>
-<h2>Terms of Service</h2>
+<h3>Terms of Service</h3>
 <p>By using {{ site_title }}, you are agreeing to be bound by the following terms and conditions (&quot;Terms of Use&quot;).</p>
 <ul>
 <li>You must be 16 years or older to use this site.</li>
@@ -34,14 +38,20 @@ const visible = ref(false);
 <li>We reserve the right to alter these Terms of Use at any time.</li>
 <li>We reserve the right to refuse service to anyone for any reason at any time.</li>
 </ul>
-<h2>
+<h3>
 Privacy Policy
-</h2>
+</h3>
 <p>Some of our advertising partners may use cookies and web beacons on our site. Our advertising partners is Google Adsense.
 Other technologies ( such as cookies, JavaScript, or Web Beacons ) may also be used by the third-party ad networks to measure the effectiveness of their advertisements and/or to personalize the ads that you see. We have no access to or control over these cookies that are used by third-party advertisers.</p>
 
 <p><em>Website hosted by OVH, 140 Quai du Sartel, 59100 Roubaix, France.</em></p>
+
 </div>
+    <template #footer>
+        <i-button @click="visible = false" size="sm" color="info">
+    Close
+</i-button>
+    </template>
 </i-modal>
 </template>
 

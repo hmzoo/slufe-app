@@ -1,9 +1,11 @@
 <script setup>
+import logo from '@/assets/logo.png';
+import logo_small from '@/assets/logo_small.png';
 import { ref , onMounted,watch } from 'vue'
 import { storeToRefs } from "pinia";
 import Settings from '@/components/Settings.vue';
 import Chat from '@/components/Chat.vue';
-import Peers from '@/components/Peers.vue';
+import ChatInput from '@/components/ChatInput.vue';
 import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
 import Flux from '@/components/Flux.vue';
@@ -29,6 +31,7 @@ watch( ()=>slufe.key,(data) =>{
 
 
 const qkey = ref("");
+const qmsg = ref("");
 const open = ref(false);
 
 const cookieok =ref(false);
@@ -43,7 +46,11 @@ const onAccept = ()=>{
   console.log("OK");
 }
 
-const needed = ref(true);
+const send =()=>{
+  slufe.send_message(qmsg.value);
+  qmsg.value="";
+}
+
 let preferences = [
   {
     title: 'Cookie settings',
@@ -69,7 +76,9 @@ onMounted(() => {
 const copylink = ()=>{
   navigator.clipboard.writeText(slufe.keylink);
 }
-
+const copykey = ()=>{
+  navigator.clipboard.writeText(slufe.key);
+}
 
 </script>
 
@@ -79,15 +88,9 @@ const copylink = ()=>{
     <i-layout-header class="_background:dark" v-if="getnf >1 ">
            <i-container color="dark">
     <i-row middle>
-        <i-column xs="3" lg="2"><b>{{ slufe.site_title }}</b></i-column>
-        <i-column xs="3" lg="1"><b class="_font-size:xl">{{ slufe.key }}</b></i-column>
-        <i-column xs="3" lg="1"  class="_text-align:right" >
-        <IcoBtn ico="cam" :val="camstatus" @click="media.switchcam" />
-        </i-column>
-    
-        <i-column xs="3" lg="1" class="_text-align:left" >
-        <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic"/>
-        </i-column>
+        <i-column xs="6" lg="3"><img :src="logo_small"  /></i-column>
+        <i-column xs="6" lg="2" class="_text-align:left number">{{ slufe.key }}</i-column>
+        
         
         <i-column xs="6" lg="3"><i-form @submit="callNumber" ><i-input v-model="qkey" placeholder="Number .." type="Number" size="sm" ><template #append><i-button type="submit" size="sm" color="primary">CALL</i-button></template></i-input></i-form></i-column>
         <i-column xs="4" lg="3"> <small>{{ slufe.msg}}</small></i-column>
@@ -99,7 +102,7 @@ const copylink = ()=>{
 
     <i-layout-header  v-if="getnf <2 ">
         <i-container >
-        <i-column xs="4" lg="2"><b>{{ slufe.site_title }}</b></i-column>
+        <i-column xs="4" lg="2"> <img :src="logo"  /></i-column>
         <i-column xs="8" lg="10"></i-column>
     </i-container>
     </i-layout-header>
@@ -114,7 +117,7 @@ const copylink = ()=>{
 
   <i-row middle  v-if="getnf < 2 ">
        <i-column xs="12" lg="6" class="_text-align:center" >
-       <div><p class="number">Your number is {{ slufe.key }}</p></div>
+       <div class="number">Your number is </div> <div class="number numbershow" @click="copykey()" >{{ slufe.key }}</div>
        <div><i-form @submit="callNumber" ><i-input v-model="qkey" placeholder="Number .." type="Number" size="lg" ><template #append><i-button type="submit" size="lg" color="primary">CALL</i-button></template></i-input></i-form></div>
        <div><small>{{ slufe.msg}}</small></div>
           </i-column>
@@ -128,35 +131,62 @@ const copylink = ()=>{
        </i-row>    
 
 <Flux v-if="getnf >1" />
-<Chat  v-if="getnf >1" />
+<Chat v-if="getnf >1" />
 
 
 
-      <vue-cookie-comply
-      preferencesLabel ="Informations"
-      headerDescription =" We use cookies and similar technologies to help personalize content and offer a better experience."
-      :preferences="preferences"
-        @on-accept-all-cookies="onAccept"
-      />
+
  
 
     </i-container>
     </i-layout-content>
-    </i-layout>
+</i-layout>
+    <i-layout-footer v-if="getnf >1" class="_background:dark _position:fixed-bottom"  >
+    <i-container color="dark">
+          <i-row center>
+
+             <i-column  xs="12" lg="9" >
+             <div class="msg_input"><IcoBtn ico="cam" :val="camstatus" @click="media.switchcam" /></div>
+            <div class="msg_input"> <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic"/></div>
+          <div class="msg_input" style="width:60%">
+    <i-form @submit="send()">
+     <i-input v-model="qmsg" placeholder="message .." type="text" size="sm" style=""><template #append><i-button type="submit" size="sm" color="secondary" style="padding:2px">SEND</i-button></template></i-input>
+    </i-form> 
+    </div> 
+          </i-column>
+        
+    </i-row>
+           </i-container>
+    </i-layout-footer>
+    
 </i-layout>
 
 
 </template>
 
 <style>
+
 .number {
-    font-family:Verdana;
+  display: inline-block;
+    font-family: 'Comic Neue', sans-serif;
     font-size:30px;
-    font-weight:100;
-    -webkit-text-stroke-color: rgb(255,255,255);
-    -webkit-text-stroke-width: 1px;
+    height: 45px;
+
+
     -webkit-font-smoothing: antialiased;
 }
 
+.numbershow {
+
+    color : #FFFFFF;
+    background-color:#992222;
+    width: 100px;
+    height: 45px;
+}
+
+.msg_input {
+  display: inline-block;
+  margin : 5px 18px 5px 0px;
+}
 
 </style>

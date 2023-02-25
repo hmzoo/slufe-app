@@ -1,5 +1,32 @@
 import { defineStore } from 'pinia';
 
+const createfakestream=()=>{
+  let color1 = "#24A8AC",color2="#0087CB";
+  let numberOfStripes = 30;
+  let w = 640
+  let h=400;
+  const canvas = Object.assign(document.createElement('canvas'), { width:w, height:h });
+  const cxt=canvas.getContext('2d');
+  //cxt.fillStyle = 'grey';
+  //cxt.fillRect(0, 0, 320, 200);
+  for (var i=0;i < numberOfStripes;i++){
+      var thickness = h / numberOfStripes;
+      cxt.beginPath();
+      cxt.strokeStyle = i % 2?color1:color2;
+      cxt.lineWidth =thickness;
+      
+      cxt.moveTo(0,i*thickness + thickness/2);
+      cxt.lineTo(w,i*thickness + thickness/2);
+      cxt.stroke();
+  }
+
+
+  const stream = canvas.captureStream();
+  const vtrack = stream.getVideoTracks()[0];
+  const videoTrack = Object.assign(vtrack, { enabled: true });
+  return new MediaStream([videoTrack]);
+}
+
 
 export const useMediaStore = defineStore('media',{
     
@@ -8,7 +35,7 @@ export const useMediaStore = defineStore('media',{
       audioDevices: [],
       camera: {beOn:true,id:"",index:0,mobile:"user",label:""},
       micro: {beOn:false,id:"",index:0,label:""},
-      stream:null,
+      stream:createfakestream(),
       constrains:{},
       error:""
 
@@ -42,15 +69,15 @@ export const useMediaStore = defineStore('media',{
                 navigator.mediaDevices
                   .getUserMedia(this.constrains)
                   .then(s => {
-                    //console.log('streaming', s)
+                    console.log('media streaming', s)
                     this.stream= s;
                    })
                   .catch(error => {
-                    this.stream= null;
+                    this.stop();
                     this.error = "⚠\n"+error + "\nMay the browser didn't support or there is some errors."
              
                   })
-              }else{this.stream= null;}})
+              }else{this.stop();}})
         },
         stop(){
           if(this.stream){
@@ -58,8 +85,11 @@ export const useMediaStore = defineStore('media',{
               //console.log('stopping', track)
               track.stop()
             })
-            this.stream = null
           }
+            console.log("stop stream ",this.stream)
+            this.stream = createfakestream();
+     
+          
         },
         switchcam(){
           this.camera.beOn=!this.camera.beOn;
