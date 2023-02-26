@@ -4,22 +4,17 @@ services:
     image: traefik:v2.4
     container_name: "traefik"
     command:
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--api.debug=true"
       - "--providers.docker=true"
-      - "--log.LEVEL=DEBUG"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
       - "--providers.docker.exposedbydefault=false"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=hello@paularah.com"
+      - "--certificatesresolvers.myresolver.acme.email=hmj@goatpage.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
       - "80:80"
-      - "8080:8080"
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -31,9 +26,10 @@ services:
       dockerfile: ./Dockerfile
     image: app
     ports:
-    - 5000:5000
+    - 5000
     labels:
       - "traefik.enable=true"
+      - "traefik.port=5000"
       - "traefik.http.routers.node-server.rule=Host(`slufe.net`)"
       - "traefik.http.routers.node-server.entrypoints=websecure"
       - "traefik.http.routers.node-server.tls.certresolver=myresolver"
