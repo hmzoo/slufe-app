@@ -364,6 +364,9 @@ export const useSlufeStore = defineStore('slufe', {
             reset_mypeer();
             init_mypeer();
         },
+        reset_peer() {
+            reset_mypeer();
+        },
         synchro() {
             synchro_fwl_peers();
             

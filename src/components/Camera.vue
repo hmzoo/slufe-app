@@ -39,7 +39,7 @@ onMounted(() => {
   <span class="errText vid"  >{{ media.error }}</span>
   </div>
   <div v-if="media.error.length == 0 && media.camera.beOn" >
-  <video :srcObject="media.stream" width="270" height="200" autoplay class="vid" muted=true ></video>
+  <video :srcObject="media.stream" width="270" height="200" autoplay class="vid" controls muted ></video>
   </div>
 
 </i-card>

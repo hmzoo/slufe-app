@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 
+let constrains = {audio : false,video: false}
+
 const createfakestream=()=>{
   let color1 = "#24A8AC",color2="#0087CB";
   let numberOfStripes = 30;
@@ -36,7 +38,6 @@ export const useMediaStore = defineStore('media',{
       camera: {beOn:true,id:"",index:0,mobile:"user",label:""},
       micro: {beOn:false,id:"",index:0,label:""},
       stream:createfakestream(),
-      constrains:{},
       error:""
 
 
@@ -62,7 +63,7 @@ export const useMediaStore = defineStore('media',{
                   this.camera.id= this.videoDevices[this.camera.index].deviceId
                   this.camera.label= this.videoDevices[this.camera.index].label
                 }
-                this.constrains= {
+                constrains= {
                  // audio: {deviceId:{exact:this.micro.id}},
                  audio : this.audioDevices.length > 0,
                   video: {
@@ -70,13 +71,13 @@ export const useMediaStore = defineStore('media',{
                   //  facingMode: state.camera.mobile,
                   },
                 }
-                if (!this.camera.beOn){this.constrains.video=false;this.camera.label="none"}
-                if (!this.micro.beOn){this.constrains.audio=false;this.micro.label="none"}
+                if (!this.camera.beOn){constrains.video=false;this.camera.label="none"}else{constrains.video={deviceId:{exact:this.camera.id}}}
+                if (!this.micro.beOn){constrains.audio=false;this.micro.label="none"}else{constrains.audio=this.audioDevices.length > 0}
                 if(this.micro.beOn || this.camera.beOn ){
                 navigator.mediaDevices
-                  .getUserMedia(this.constrains)
+                  .getUserMedia(constrains)
                   .then(s => {
-                    console.log("constrains : ",this.constrains.audio,this.constrains.video)
+                    console.log("constrains : ",constrains.audio,constrains.video)
                     //console.log('media streaming', s)
                   //  console.log(this.constrains)
                     this.stream= s;
@@ -84,7 +85,7 @@ export const useMediaStore = defineStore('media',{
                   .catch(error => {
                     this.stop();
                     this.error = "⚠\n"+error + "\nMay the browser didn't support or there is some errors."
-                    console.log("constrains : ",this.constrains.audio,this.constrains.video)
+                    console.log("constrains : ",constrains.audio,constrains.video)
                     console.log(error)
              
                   })

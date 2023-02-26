@@ -1,8 +1,17 @@
 <script setup>
+import {  onUpdated } from "vue";
 import { storeToRefs } from "pinia";
 import { useSlufeStore } from '@/stores/slufe'
 
 const { getflux ,getnf,showme} = storeToRefs(useSlufeStore());
+
+onUpdated(() => {
+  console.log('onUpdated called!')
+})
+
+onplay=()=>{
+  console.log("play");
+}
 
 </script>
 
@@ -11,8 +20,9 @@ const { getflux ,getnf,showme} = storeToRefs(useSlufeStore());
 
        <i-column xs="12" lg="6" v-for="item in getflux" :key="item.keynum" >
        <div style="width:100%"  >
-       <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }}</i></span></div>
-         <video :srcObject="item.stream"  autoplay style="width:100%" :muted="item.me"></video>
+       <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }} {{ item.me }}</i></span></div>
+         
+         <video :srcObject="item.stream"  autoplay style="width:100%"  controls  :muted=item.me ></video>
          </div>
        </i-column>
     
@@ -23,7 +33,7 @@ const { getflux ,getnf,showme} = storeToRefs(useSlufeStore());
        <i-column xs="12" lg="12" v-for="item in getflux" :key="item.keynum" >
        <div style="width:100%" v-if="!item.me " >
        <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }}</i></span></div>
-         <video :srcObject="item.stream"  autoplay style="width:100%" ></video>
+         <video :srcObject="item.stream"  autoplay style="width:100%" controls   ></video>
          </div>
        </i-column>
     
