@@ -21,6 +21,9 @@ sudo bash /tmp/nodesource_setup.sh
 sudo apt -y install nodejs
 
 #CONTAINERS
-apt-get remove -y redis-server
+sudo apt-get remove -y redis-server
 sudo pkill traefik
+
+#EXTRA
+sudo apt-get install gh code
 
