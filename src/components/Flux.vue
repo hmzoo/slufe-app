@@ -1,15 +1,15 @@
 <script setup>
-import {  onUpdated } from "vue";
+import { onUpdated } from "vue";
 import { storeToRefs } from "pinia";
 import { useSlufeStore } from '@/stores/slufe'
 
-const { getflux ,getnf,showme} = storeToRefs(useSlufeStore());
+const { getflux, getnf, showme } = storeToRefs(useSlufeStore());
 
 onUpdated(() => {
   console.log('onUpdated called!')
 })
 
-onplay=()=>{
+onplay = () => {
   console.log("play");
 }
 
@@ -18,33 +18,34 @@ onplay=()=>{
 <template>
   <i-row middle v-if="showme">
 
-       <i-column xs="12" lg="6" v-for="item in getflux" :key="item.keynum" >
-       <div style="width:100%"  >
-       <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }} {{ item.me }}</i></span></div>
-         
-         <video :srcObject="item.stream"  autoplay style="width:100%"  controls  :muted=item.me ></video>
-         </div>
-       </i-column>
-    
-       </i-row>
+    <i-column xs="12" lg="6" v-for="item in getflux" :key="item.keynum">
+      <div style="width:100%">
+        <div class="smallmsg"><small><b>{{ item.keynum }}</b></small> <span><i>{{ item.message }} {{ item.me }}</i></span>
+        </div>
 
-         <i-row middle v-if="!showme && getnf == 2 ">
+        <video :srcObject="item.stream" autoplay style="width:100%" controls :muted=item.me></video>
+      </div>
+    </i-column>
 
-       <i-column xs="12" lg="12" v-for="item in getflux" :key="item.keynum" >
-       <div style="width:100%" v-if="!item.me " >
-       <div class="smallmsg" ><small><b>{{item.keynum }}</b></small> <span><i>{{ item.message }}</i></span></div>
-         <video :srcObject="item.stream"  autoplay style="width:100%" controls   ></video>
-         </div>
-       </i-column>
-    
-       </i-row>
+  </i-row>
+
+  <i-row middle v-if="!showme && getnf == 2">
+
+    <i-column xs="12" lg="12" v-for="item in getflux" :key="item.keynum">
+      <div style="width:100%" v-if="!item.me">
+        <div class="smallmsg"><small><b>{{ item.keynum }}</b></small> <span><i>{{ item.message }}</i></span></div>
+        <video :srcObject="item.stream" autoplay style="width:100%" controls></video>
+      </div>
+    </i-column>
+
+  </i-row>
 </template>
 
 <style>
 .smallmsg {
   font-family: 'Comic Neue', sans-serif;
-  color : #FFFFFF;
+  color: #FFFFFF;
   border: 1px solid #32a1ce;
-  width : 100%
+  width: 100%
 }
 </style>

@@ -10,6 +10,8 @@ services:
       - "--providers.docker=true"
       - "--log.LEVEL=DEBUG"
       - "--entryPoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entryPoints.websecure.address=:443"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file=true"
