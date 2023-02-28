@@ -14,10 +14,7 @@ const props = defineProps({
 
 
 
-onMounted(() => {
-  
-    media.start();
-    })
+
 
 </script>
 
@@ -29,17 +26,17 @@ onMounted(() => {
     <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam"/>
     <span style="width:24px;display: inline-block"></span>
     <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
-    <div style="float:right"><IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn"/></div>
+    <div style="float:right"><IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn && media.camera.check"/></div>
   </div><br/>
   <div style="width:270px;display: inline-block;margin-bottom:5px" >
- <span class="camText" v-if="media.camera.beOn" >{{ media.camera.label}}</span>
+ <span class="camText" v-if="media.camera.beOn && media.camera.check" >{{ media.camera.label}}</span>
   </div>
   <br/>
     <div v-if="media.error.length > 0 || !media.camera.beOn">
   <span class="errText vid"  >{{ media.error }}</span>
   </div>
   <div v-if="media.error.length == 0 && media.camera.beOn" >
-  <video :srcObject="media.stream" width="270" height="200" autoplay class="vid" controls muted ></video>
+    <video :srcObject="media.stream" style="width:100%"  muted="true" autoplay></video>
   </div>
 
 </i-card>
