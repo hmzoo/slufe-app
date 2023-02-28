@@ -33,14 +33,19 @@ const createfakestream = () => {
         cxt.lineTo(w, i * thickness + thickness / 2);
         cxt.stroke();
     }
-    const stream = canvas.captureStream();
+    const stream = canvas.captureStream(25);
     const vtrack = stream.getVideoTracks()[0];
     const videoTrack = Object.assign(vtrack, { enabled: true });
     return new MediaStream([videoTrack]);
+
+    
+  
 }
 
 
-let mystream = createfakestream();
+let mystream = null;
+let mystreammuted = null;
+let fakestream = createfakestream()
 
 const new_peer = (id) => {
     var index = peers.map(function (e) { return e.id; }).indexOf(id);
@@ -49,7 +54,7 @@ const new_peer = (id) => {
         let fwl = useSlufeStore().fwl
         let ifwl = fwl.map(function (e) { return e.d; }).indexOf(id);
         if (ifwl >= 0) { keynum = fwl[ifwl].k }
-        index = peers.push({ id: id, keynum: keynum, stream: createfakestream(), message: "", connection: null, call: null, connected: false, called: false, streamid: "" }) - 1;
+        index = peers.push({ id: id, keynum: keynum, stream: null, message: "", connection: null, call: null, connected: false, called: false, streamid: "", cpt: 0 }) - 1;
     }
     return peers[index];
 }
@@ -61,41 +66,63 @@ const remove_peer = (id) => {
             peers[index].connection.close();
 
         }
+        if (peers[index].call && peers[index].call.open) {
+            peers[index].call.close();
+
+        }
         peers = peers.filter(function (obj) {
             return obj.id !== id;
         });
     }
 }
 
-
-const new_connection = (cxn) => {
-    var index = peers.map(function (e) { return e.id; }).indexOf(cxn.peer);
-    if (peers[index].connection && peers[index].connection.open) {
-        peers[index].connection.close()
-    }
-    peers[index].connection = cxn
-    peers[index].connected = true
-    useSlufeStore().message(peers[index].keynum, "connected", "info")
-
+// Connections
+const onConnectionOpen =(p,cxn)=>{
+    p.connection = cxn
+    p.connected = true
+    cxn.send({ keynum: useSlufeStore().key });
+    useSlufeStore().message(p.keynum, "connected", "info")
+    init_call(cxn.peer)
 }
 
-
-const new_call = (call, stream) => {
-
-    if (call) {
-        var index = peers.map(function (e) { return e.id; }).indexOf(call.peer);
-
-        peers[index].call = call
-        if (stream) {
-            peers[index].stream = stream
-            peers[index].streamid = stream.id
-        }
-
+const onConnectionData = (p,data) =>{
+    if (data.keynum) { p.keynum = data.keynum }
+    if (data.msg) {
+        p.message = data.msg
+        useSlufeStore().message(p.keynum, data.msg, "peer")
     }
-
-
+    if (data.ask && data.ask == "callme" && mystream) {
+       // init_call(cxn.peer, mystream);
+    }
 }
 
+const onConnectionClose =(p)=>{
+    p.connected = false
+    useSlufeStore().message(p.keynum, "connection closed", "info")
+}
+
+// Calls
+const onCallStream = (p, call, stream) => {
+    p.call = call
+    p.called = true;
+    
+    if (stream && stream.id) {
+        console.log("STREAM VT",stream.id,stream.getVideoTracks()[0])
+        p.stream = stream
+        p.streamid = stream.id
+    }
+}
+
+const onCallStop = (p) => {
+    p.called = false;
+    p.streamid = ""
+    p.called = false;
+    if (p.stream) {
+        p.stream.getTracks().forEach(track => { track.stop() })
+        p.stream = null;
+    }
+    p.call = null;
+}
 
 
 
@@ -104,59 +131,24 @@ const init_mypeer = () => {
     myPeer = new Peer()
     myPeer.on('open', (id) => {
         useSlufeStore().set(id);
-        failed_peerid.push(id);
         myPeer.on('connection', (cxn) => {
             let p = new_peer(cxn.peer);
-            cxn.on('open', () => {
-                p.connection = cxn
-                p.connected = true
-                cxn.send({ keynum: useSlufeStore().key });
-                useSlufeStore().message(p.keynum, "connected", "info")
-            })
-            cxn.on('data', (data) => {
-                if (data.keynum) { p.keynum = data.keynum }
-                if (data.msg) {
-                    p.message = data.msg
-                    useSlufeStore().message(p.keynum, data.msg, "peer")
-                }
-                if (data.ask && data.ask == "callme" && mystream) {
-                    init_call(cxn.peer, mystream);
-                }
-            })
-            cxn.on('close', () => {
-                p.connected = false
-                useSlufeStore().message(p.keynum, "connection closed", "info")
-                
-
-            })
-            cxn.on('error', (error) => {
-                p.connected = false
-                useSlufeStore().message(p.keynum, "connection closed", "info")
-            })
+            cxn.on('open', () => {onConnectionOpen(p,cxn)})
+            cxn.on('data', (data) => {onConnectionData(p,data)})
+            cxn.on('close', () => {onConnectionClose(p)})
         })
         myPeer.on('call', (call) => {
-            console.log("myPeer.on('call'")
             let p = new_peer(call.peer);
-            call.answer(mystream)
-            call.on('stream', (stream => {
-                p.call = call
-                if (stream) {
-                    p.stream = stream
-                    p.streamid = stream.id
-                }
-            }))
-            call.on('close', () => {
-                p.called = false;
-                p.stream = null;
-                p.streamid = ""
+            if(mystream){
+            call.answer(mystream.clone())
+            }else{
+                call.answer() 
+            }
+            call.on('stream', (stream) => {onCallStream(p,call, stream)})
+            call.on('close', () => {onCallStop(p)})
+            call.on('error', (err) => {console.log(err);onCallStop(p)})
             })
-            call.on('error', (err) => {
-                p.called = false;
-                p.stream = null;
-                p.streamid = ""
-
-            })
-        })
+ 
         myPeer.on('close', () => {
             remove_peer(id);
         })
@@ -190,105 +182,65 @@ const reset_mypeer = () => {
     }
 }
 
-const init_connection = (pid,k) => {
+const init_connection = (pid, k) => {
     let cxn = myPeer.connect(pid)
     if (cxn) {
         let p = new_peer(cxn.peer);
-        p.keynum=k;
-        cxn.on('open', () => {
-            new_connection(cxn);
-            cxn.send({ keynum: useSlufeStore().key });
-        })
-        cxn.on('data', (data) => {
-            if (data.keynum) { p.keynum = data.keynum }
-            if (data.msg) {
-                p.message = data.msg
-                useSlufeStore().message(p.keynum, data.msg, "peer")
-            }
-            if (data.ask && data.ask == "callme" && mystream) {
-                init_call(cxn.peer, mystream);
-            }
-        })
-        cxn.on('close', () => {
-            p.connected = false
-            useSlufeStore().message(p.keynum, "connection closed", "info")
-           
-
-        })
-        cxn.on('error', (error) => {
-            p.connected = false
-            useSlufeStore().message(p.keynum, "connection closed", "info")
-            
-        })
+        p.keynum = k;
+        cxn.on('open', () => {onConnectionOpen(p,cxn)})
+        cxn.on('data', (data) => {onConnectionData(p,data)})
+        cxn.on('close', () => {onConnectionClose(p)})
     }
 }
 
-const init_call = (pid, s) => {
-
-    let call = myPeer.call(pid, s);
+const init_call = (pid) => {
+    console.log("INIT_CALL",pid,mystream)
+    let call 
     
+    if(mystream){
+     call = myPeer.call(pid, mystream.clone());
+    }else{
+     //call = myPeer.call(pid, createfakestream());
+    }
+
     if (call) {
         let p = new_peer(call.peer);
-        call.on('stream', (stream => {
-            p.call = call
-            if (stream) {
-                p.stream = stream
-                p.streamid = stream.id
-            }
-        }))
-        call.on('close', () => {
-            p.call = null;
-            if (s) {
-                s.getTracks().forEach(track => { track.stop() })
-                s = null;
-            }
-
-        })
-        call.on('error', (err) => {
-            p.call = null;
-            if (s) {
-                s.getTracks().forEach(track => { track.stop() })
-                s = null;
-            }
-
-        })
-    } else {
-        console.log(p, p.connecion, "callme")
-        if (p.connection) { p.connection.send({ ask: "callme" }) }
-    }
+        call.on('stream', (stream) => {onCallStream(p, call,stream)})
+        call.on('close', () => {onCallStop(p)})
+        call.on('error', (err) => {console.log(err);onCallStop(p)})
+    } 
 }
 
 
 
 const synchro_fwl_peers = () => {
     let fwl = useSlufeStore().fwl
-    let todelete = [];
+
 
     for (let i = 0; i < fwl.length; i++) {
         let f = fwl[i];
         var index = peers.map(function (e) { return e.id; }).indexOf(f.d);
         if (index < 0) {
-            init_connection(f.d,f.k);
-            init_call(f.d, mystream)
+            init_connection(f.d, f.k);
+            //init_call(f.d, mystream);
         } else {
-            // SET PEER KEYNUM
-            if (peers[index].call == null) {
-                //  init_call(myPeer.call(f.d, mystream))
-            }
-            peers[index].keynum = f.k
+            let p = peers[index]
+            if (p.connected == false && p.cpt < 20) { p.cpt = p.cpt + 1; init_connection(f.d, f.k); }
+            //if (p.called == false && p.cpt < 20) { p.cpt = p.cpt + 1; init_call(f.d, mystream); }
+            p.keynum = f.k;
         }
+
     }
+    let todelete = [];
 
     for (let i = 0; i < peers.length; i++) {
         var index = fwl.map(function (e) { return e.d; }).indexOf(peers[i].id);
         if (index < 0) {
-            // REMOVE OLD PEER 
             todelete.push(peers[i].id)
         }
     }
 
     for (let i = 0; i < todelete.length; i++) {
-
         remove_peer(todelete[i]);
     }
 
@@ -348,14 +300,16 @@ export const useSlufeStore = defineStore('slufe', {
         },
         update_flux() {
             //this.flux.splice(0, this.flux.length, ...peers)
-            let peerid = ""
+            let peerid = "";
             let connected = false;
             if (myPeer) {
                 peerid = myPeer.id
                 connected = true;
             }
-            let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream, message: e.message, connected: e.connected, me: false, streamid: e.streamid } });
-            tab.push({ id: peerid, keynum: this.key, stream: mystream, message: mymessage, connected: connected, me: true, streamid: mystream.id })
+            let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream || fakestream, message: e.message, connected: e.connected, me: false, streamid: e.streamid } });
+            let mystreamid =''
+            if(mystream){mystreamid=mystream.id}
+            tab.push({ id: peerid, keynum: this.key, stream: mystreammuted || fakestream, message: mymessage, connected: connected, me: true, streamid: mystreamid})
 
             this.flux = tab.sort((a, b) => (a.keynum > b.keynum) ? 1 : -1)
 
@@ -380,26 +334,31 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {
+            if (mystream) {mystream.getTracks().forEach(track => { track.stop() })}
+            if (mystreammuted) {mystreammuted.getTracks().forEach(track => { track.stop() })}
+            
             if (s != null) {
-
-                mystream = s.clone()
-                let audiotracks = mystream.getAudioTracks();
-                if (audiotracks.length > 0) { mystream.removeTrack(audiotracks[0]); }
-
-
+                mystream=s;
+                mystreammuted = mystream.clone()
+                
+                let audiotracks = mystreammuted.getAudioTracks();
+                if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
 
                 for (let i = 0; i < peers.length; i++) {
-                    if (myPeer && peers[i].connection && peers[i].connection.open) {
+                    if (myPeer && peers[i].connection && peers[i].connection.open ){
+                        if(peers[i].call){peers[i].call.close()}
                         //init_call(myPeer.call(peers[i].id, s))
-                        init_call(peers[i].id, s.clone());
+                        init_call(peers[i].id);
                     }
                 }
             } else {
-                mystream = createfakestream();
+                mystreammuted = null;
+                mystream = null;
                 for (let i = 0; i < peers.length; i++) {
                     if (myPeer && peers[i].connection && peers[i].connection.open) {
                         //init_call(myPeer.call(peers[i].id, s))
-                        init_call(peers[i].id, createfakestream());
+                        if(peers[i].call){peers[i].call.close()}
+                        init_call(peers[i].id);
                     }
                 }
             }
