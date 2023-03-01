@@ -4,9 +4,9 @@
   "description": "slufe APP",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development node ./server.js",
-    "serve": "cross-env NODE_ENV=production node ./server.js",
-    "docker": "cross-env NODE_ENV=production REDIS_HOST=redis-server node ./server.js",
+    "dev": "NODE_ENV=development node ./server.js",
+    "serve": "NODE_ENV=production node ./server.js",
+    "docker": "NODE_ENV=production REDIS_HOST=redis-server node ./server.js",
     "build": "vite build"
   },
   "repository": {
@@ -40,6 +40,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.2.0",
     "cross-env": "^7.0.3",
+    "env-cmd": "^10.1.0",
     "nodemon": "^2.0.20",
     "sass": "^1.56.1",
     "vite": "^3.2.4"

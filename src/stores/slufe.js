@@ -3,9 +3,9 @@ import Peer from 'peerjs';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 
-const site_url = "https://slufe.com"
-const site_title = "SLUFE"
-
+const site_host = import.meta.env.VITE_SITE_HOST || "slufe.com"
+const site_title = import.meta.env.VITE_SITE_TITLE || "SLUFE"
+const env_test = import.meta.env.VITE_ENV_TEST || "ENV_TEST"
 
 let myPeer = null;
 let peers = []
@@ -256,12 +256,13 @@ export const useSlufeStore = defineStore('slufe', {
         msg: "",
         key: "000000",
         fwl: [],
-        site_url: site_url,
+        site_host: site_host,
         site_title: site_title,
         flux: [],
         messages: [],
         showme: true,
-        last_tik: Date.now()
+        last_tik: Date.now(),
+        env_test: env_test
 
     }),
     actions: {
@@ -398,7 +399,7 @@ export const useSlufeStore = defineStore('slufe', {
 
     },
     getters: {
-        keylink: (state) => { return state.site_url + "/" + state.key },
+        keylink: (state) => { return "https://"+state.site_host + "/" + state.key },
         getflux: (state) => { return state.flux },
         getmessages: (state) => { return state.messages },
         getnf: (state) => { return state.flux.length },

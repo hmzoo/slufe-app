@@ -186,18 +186,17 @@ const copykey = () => {
 </template>
 
 <style>
+
+
 .number {
   display: inline-block;
   font-family: 'Comic Neue', sans-serif;
   font-size: 30px;
   height: 45px;
-
-
   -webkit-font-smoothing: antialiased;
 }
 
 .numbershow {
-
   color: #FFFFFF;
   background-color: #992222;
   width: 100px;

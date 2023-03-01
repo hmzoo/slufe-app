@@ -1,12 +1,18 @@
 const Redis = require("ioredis");
+
+const host = process.env.REDIS_HOST || 'localhost'
+const port =  process.env.REDIS_PORT || 6379
+const prefix = process.env.REDIS_PREFIX || "SLUFE"
+
+console.log( "REDIS CONFIG : Host ",host," Port ",port, " prefix ",prefix);
 const redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
+    host: host,
+    port: port,
 });
 
 redis.flushall();
 
-const prefix = process.env.REDIS_PREFIX || "SLUFE"
+
 const ttl = 60*60*24;
 const rankey = () => { return "" + (100000 + Math.floor(Math.random() * 900000)); }
 const pf=(k) => {return prefix+k}
