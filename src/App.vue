@@ -22,8 +22,12 @@ const { getnf } = storeToRefs(slufe);
 
 
 watch(() => media.stream_status, (data) => {
-
-    slufe.stream(media.stream);
+    if(data.ready){
+      slufe.stream(media.stream);
+    }else{
+      slufe.tik();
+    }
+    
     console.log("NEW STREAM",data)
   
 })

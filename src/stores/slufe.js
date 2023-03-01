@@ -261,10 +261,11 @@ export const useSlufeStore = defineStore('slufe', {
         flux: [],
         messages: [],
         showme: true,
-        last_stream: Date.now()
+        last_tik: Date.now()
 
     }),
     actions: {
+
         update_data(data) {
             this.updated = this.fwl.length != data.fwl.length
             this.msg = data.msg || "";
@@ -299,6 +300,9 @@ export const useSlufeStore = defineStore('slufe', {
                 this.update_data(res.data);
             })
         },
+        tik(){
+            this.last_tik= Date.now()
+        },
         update_flux() {
             //this.flux.splice(0, this.flux.length, ...peers)
             let peerid = "";
@@ -309,8 +313,8 @@ export const useSlufeStore = defineStore('slufe', {
             }
             let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream || fakestream, message: e.message, connected: e.connected, me: false, streamid: e.streamid } });
             let mystreamid =''
-            console.log(Date.now()-this.last_stream) 
-            if(mystream && Date.now()-this.last_stream > 3000 ){
+            console.log(Date.now()-this.last_tik) 
+            if(mystream && Date.now()-this.last_tik > 3000 ){
              console.log("!!!",mystream.id)   
                 mystreamid=mystream.id
 
@@ -345,7 +349,7 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {
-            this.last_stream = Date.now()
+            
            if (mystream) {mystream.getTracks().forEach(track => { track.stop() })}
             if (mystreammuted) {mystreammuted.getTracks().forEach(track => { track.stop() })}
             

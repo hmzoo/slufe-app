@@ -43,7 +43,7 @@ export const useMediaStore = defineStore('media', {
     micro: { beOn: false, id: "", index: 0, label: "" ,check:false},
     stream: null,
     error: "",
-    stream_status :{cam:false,mic:false,caminfo:""}
+    stream_status :{cam:false,mic:false,caminfo:"",ready:false}
 
 
   }),
@@ -56,6 +56,7 @@ export const useMediaStore = defineStore('media', {
       }).catch(error => { console.log(error)});
     },
     start() {
+      this.stream_status = {cam:false, mic:false ,caminfo:"INIT",ready:false}
       let caminfo ="";
       this.error = "";
       if (this.stream ){
@@ -95,7 +96,7 @@ export const useMediaStore = defineStore('media', {
             if(!this.camera.check){this.camera.check=true;this.list()}
             this.error = "";
             this.stream = s;
-            this.stream_status = {cam:this.camera.beOn, mic:this.micro.beOn ,caminfo:caminfo}
+            this.stream_status = {cam:this.camera.beOn, mic:this.micro.beOn ,caminfo:caminfo,ready:true}
           })
           .catch(error => {
             this.camera.check =false;
@@ -105,7 +106,7 @@ export const useMediaStore = defineStore('media', {
             this.error = "⚠\nMay the browser didn't support or there is some errors.\n Or \n Camera not authorized. please check your media permissions settings"
             console.log("constrains : ", constrains.audio, constrains.video)
             console.log(error)
-            this.stream_status = {cam:false, mic:false ,camid:"ERR"}
+            this.stream_status = {cam:false, mic:false ,caminfo:"ERR",ready:true}
            
 
           })
@@ -119,7 +120,7 @@ export const useMediaStore = defineStore('media', {
         })
         this.stream = null;
       }
-      this.stream_status = {cam:false, mic:false ,caminfo:"STOP"}
+      this.stream_status = {cam:false, mic:false ,caminfo:"STOP",ready:true}
       //console.log("stop stream ",this.stream)
       
       
