@@ -49,11 +49,15 @@ export const useMediaStore = defineStore('media', {
   }),
   actions: {
     list() {
+      console.log("LIST")
       navigator.mediaDevices.enumerateDevices().then(devices => {
         this.audioDevices = devices.filter(device => device.kind === 'audioinput');
         this.videoDevices = devices.filter(device => device.kind === 'videoinput');
         console.log("list devices",devices,this.audioDevices,this.videoDevices);
-      }).catch(error => { console.log(error)});
+        this.camera.check=true;
+        this.camera.id = this.videoDevices[0].deviceId
+        this.camera.label = this.videoDevices[0].label
+      }).catch(error => { console.log("LIST",error)});
     },
     start() {
       this.stream_status = {cam:false, mic:false ,caminfo:"INIT",ready:false}
@@ -64,7 +68,7 @@ export const useMediaStore = defineStore('media', {
           //console.log('stopping', track)
           track.stop()
         })
-        
+        this.stream=null
       }
       
 
@@ -93,7 +97,7 @@ export const useMediaStore = defineStore('media', {
           .getUserMedia(constrains)
           .then(s => {
             console.log("constrains : ", constrains.audio, constrains.video)
-            if(!this.camera.check){this.camera.check=true;this.list()}
+            if(!this.camera.check){this.list()}
             this.error = "";
             this.stream = s;
             this.stream_status = {cam:this.camera.beOn, mic:this.micro.beOn ,caminfo:caminfo,ready:true}
@@ -149,6 +153,7 @@ export const useMediaStore = defineStore('media', {
       if (this.camera.id == this.videoDevices[this.camera.index].deviceId) { this.camera.index = (this.camera.index + 1) % this.videoDevices.length }
       this.camera.id = this.videoDevices[this.camera.index].deviceId
       this.camera.label = this.videoDevices[this.camera.index].label
+      console.log("CAMERA",this.camera)
       this.start();
     }
     ,

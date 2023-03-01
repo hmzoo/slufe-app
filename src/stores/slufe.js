@@ -198,7 +198,7 @@ const init_call = (pid) => {
     let call 
     
     if(mystream){
-     call = myPeer.call(pid, mystream.clone());
+     call = myPeer.call(pid, mystream);
     }else{
      //call = myPeer.call(pid, createfakestream());
     }
