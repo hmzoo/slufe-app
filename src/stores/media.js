@@ -42,7 +42,8 @@ export const useMediaStore = defineStore('media', {
     camera: { beOn: true, id: "", index: 0, mobile: "user", label: "",check:false },
     micro: { beOn: false, id: "", index: 0, label: "" ,check:false},
     stream: null,
-    error: ""
+    error: "",
+    stream_status :{cam:false,mic:false,caminfo:""}
 
 
   }),
@@ -55,13 +56,14 @@ export const useMediaStore = defineStore('media', {
       }).catch(error => { console.log(error)});
     },
     start() {
+      let caminfo ="";
       this.error = "";
       if (this.stream ){
         this.stream.getTracks().forEach(track => {
           //console.log('stopping', track)
           track.stop()
         })
-        this.stream = null;
+        
       }
       
 
@@ -72,12 +74,14 @@ export const useMediaStore = defineStore('media', {
       
       if (!this.camera.beOn) { 
         constrains.video = false; this.camera.label = "" 
+        caminfo="NONE"
       } else { 
         if (this.camera.check) {
           this.camera.id = this.videoDevices[this.camera.index].deviceId
           this.camera.label = this.videoDevices[this.camera.index].label
           constrains.video = { deviceId: { exact: this.camera.id } }
-        }else{ constrains.video = true }
+          caminfo=this.camera.id 
+        }else{ constrains.video = true ;caminfo="DEFAULT"  }
     }
 
     if (!this.micro.beOn) { constrains.audio = false; this.micro.label = "" } else { constrains.audio = { echoCancellation: true } }
@@ -91,6 +95,7 @@ export const useMediaStore = defineStore('media', {
             if(!this.camera.check){this.camera.check=true;this.list()}
             this.error = "";
             this.stream = s;
+            this.stream_status = {cam:this.camera.beOn, mic:this.micro.beOn ,caminfo:caminfo}
           })
           .catch(error => {
             this.camera.check =false;
@@ -100,6 +105,7 @@ export const useMediaStore = defineStore('media', {
             this.error = "⚠\nMay the browser didn't support or there is some errors.\n Or \n Camera not authorized. please check your media permissions settings"
             console.log("constrains : ", constrains.audio, constrains.video)
             console.log(error)
+            this.stream_status = {cam:false, mic:false ,camid:"ERR"}
            
 
           })
@@ -113,8 +119,9 @@ export const useMediaStore = defineStore('media', {
         })
         this.stream = null;
       }
+      this.stream_status = {cam:false, mic:false ,caminfo:"STOP"}
       //console.log("stop stream ",this.stream)
-      this.stream = null;
+      
       
     },
     destroy() {

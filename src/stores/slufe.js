@@ -260,7 +260,8 @@ export const useSlufeStore = defineStore('slufe', {
         site_title: site_title,
         flux: [],
         messages: [],
-        showme: true
+        showme: true,
+        last_stream: Date.now()
 
     }),
     actions: {
@@ -308,7 +309,17 @@ export const useSlufeStore = defineStore('slufe', {
             }
             let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream || fakestream, message: e.message, connected: e.connected, me: false, streamid: e.streamid } });
             let mystreamid =''
-            if(mystream){mystreamid=mystream.id}
+            console.log(Date.now()-this.last_stream) 
+            if(mystream && Date.now()-this.last_stream > 3000 ){
+             console.log("!!!",mystream.id)   
+                mystreamid=mystream.id
+
+                 mystreammuted = mystreammuted || mystream.clone()
+                
+                 let audiotracks = mystreammuted.getAudioTracks();
+                 if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
+            }
+
             tab.push({ id: peerid, keynum: this.key, stream: mystreammuted || fakestream, message: mymessage, connected: connected, me: true, streamid: mystreamid})
 
             this.flux = tab.sort((a, b) => (a.keynum > b.keynum) ? 1 : -1)
@@ -334,15 +345,16 @@ export const useSlufeStore = defineStore('slufe', {
             }
         },
         stream(s) {
-            if (mystream) {mystream.getTracks().forEach(track => { track.stop() })}
+            this.last_stream = Date.now()
+           if (mystream) {mystream.getTracks().forEach(track => { track.stop() })}
             if (mystreammuted) {mystreammuted.getTracks().forEach(track => { track.stop() })}
             
             if (s != null) {
-                mystream=s;
-                mystreammuted = mystream.clone()
+                mystream=s
+                mystreammuted = null
                 
-                let audiotracks = mystreammuted.getAudioTracks();
-                if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
+                // let audiotracks = mystreammuted.getAudioTracks();
+                // if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
 
                 for (let i = 0; i < peers.length; i++) {
                     if (myPeer && peers[i].connection && peers[i].connection.open ){
@@ -362,6 +374,8 @@ export const useSlufeStore = defineStore('slufe', {
                     }
                 }
             }
+           
+            
         },
         switchshowme() {
             this.showme = !this.showme;

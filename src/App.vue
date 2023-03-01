@@ -21,9 +21,9 @@ const { camstatus, micstatus } = storeToRefs(media);
 const { getnf } = storeToRefs(slufe);
 
 
-watch(() => media.stream, (data) => {
+watch(() => media.stream_status, (data) => {
 
-    slufe.stream(data);
+    slufe.stream(media.stream);
     console.log("NEW STREAM",data)
   
 })
