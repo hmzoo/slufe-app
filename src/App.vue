@@ -9,28 +9,17 @@ import Camera from '@/components/Camera.vue';
 import IcoBtn from '@/components/IcoBtn.vue';
 import Flux from '@/components/Flux.vue';
 import TOS from '@/components/TOS.vue';
-import Debug from '@/components/Debug.vue';
-
+//import Debug from '@/components/Debug.vue';
 
 import { useSlufeStore } from '@/stores/slufe'
-import { useMediaStore } from '@/stores/media'
+
 
 const slufe = useSlufeStore()
-const media = useMediaStore()
-const { camstatus, micstatus } = storeToRefs(media);
-const { getnf } = storeToRefs(slufe);
+
+const { getnf,camstatus, micstatus  } = storeToRefs(slufe);
 
 
-watch(() => media.stream_status, (data) => {
-    if(data.ready){
-      slufe.stream(media.stream);
-    }else{
-      slufe.tik();
-    }
-    
-    console.log("NEW STREAM",data)
-  
-})
+
 watch(() => slufe.key, (data) => {
   open.value = false
 })
@@ -68,7 +57,7 @@ let preferences = [
 ];
 
 onMounted(() => {
-  media.start();
+  slufe.start_stream();
   cookieok.value = localStorage.getItem('cookie-comply') != null;
   slufe.init_peer();
   slufe.hb();
@@ -78,7 +67,7 @@ onMounted(() => {
     slufe.synchro();
   }, 3000);
 });
-onBeforeUnmount(() => media.destroy())
+onBeforeUnmount(() => slufe.destroy())
 
 const copylink = () => {
   navigator.clipboard.writeText(slufe.keylink);
@@ -163,10 +152,10 @@ const copykey = () => {
 
           <i-column xs="12" lg="9">
             <div class="msg_input">
-              <IcoBtn ico="cam" :val="camstatus" @click="media.switchcam" />
+              <IcoBtn ico="cam" :val="camstatus" @click="slufe.switchcam" />
             </div>
             <div class="msg_input">
-              <IcoBtn ico="mic" :val="micstatus" @click="media.switchmic" />
+              <IcoBtn ico="mic" :val="micstatus" @click="slufe.switchmic" />
             </div>
             <div class="msg_input" style="width:50%">
               <i-form @submit="send()">

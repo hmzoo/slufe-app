@@ -39,7 +39,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.2.0",
-    "cross-env": "^7.0.3",
     "env-cmd": "^10.1.0",
     "nodemon": "^2.0.20",
     "sass": "^1.56.1",

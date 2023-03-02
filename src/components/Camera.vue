@@ -1,42 +1,31 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useMediaStore } from '@/stores/media'
+
+import { useSlufeStore } from '@/stores/slufe'
 
 import IcoBtn from '@/components/IcoBtn.vue';
 
-const media=useMediaStore();
-
-const props = defineProps({
-	camon: Boolean,
-    micon:Boolean
-})
-
-
-
-
+const slufe=useSlufeStore();
 
 
 </script>
 
 <template>
 <i-card color="secondary" >
-
-
   <div style="width:270px;display: inline-block" >
-    <IcoBtn ico="cam" :val="media.camera.beOn" @click="media.switchcam"/>
+    <IcoBtn ico="cam" :val="slufe.camstatus" @click="slufe.switchcam"/>
     <span style="width:24px;display: inline-block"></span>
-    <IcoBtn ico="mic" :val="media.micro.beOn" @click="media.switchmic"/>
-    <div style="float:right"><IcoBtn ico="swap"  @click="media.swapcam" v-if="media.camera.beOn && media.camera.check"/></div>
+    <IcoBtn ico="mic" :val="slufe.micstatus" @click="slufe.switchmic"/>
+    <div style="float:right"><IcoBtn ico="swap"  @click="slufe.swapcam" v-if="slufe.camOn && slufe.camlabel"/></div>
   </div><br/>
   <div style="width:270px;display: inline-block;margin-bottom:5px" >
- <span class="camText" v-if="media.camera.beOn && media.camera.check" >{{ media.camera.label}}</span>
+ <span class="camText" v-if="slufe.camOn" >{{ slufe.camlabel}}</span>
   </div>
   <br/>
-    <div v-if="media.error.length > 0 || !media.camera.beOn">
-  <span class="errText vid"  >{{ media.error }}</span>
+    <div v-if="slufe.stream_error.length > 0 || !slufe.camOn">
+  <span class="errText vid"  >{{ slufe.stream_error }}</span>
   </div>
-  <div v-if="media.error.length == 0 && media.camera.beOn" >
-    <video :srcObject="media.stream" style="width:100%"  muted="true" autoplay></video>
+  <div v-if="slufe.stream_error.length == 0 && slufe.camOn" >
+    <video :srcObject="slufe.stream" style="width:100%"  muted="true" autoplay></video>
   </div>
 
 </i-card>

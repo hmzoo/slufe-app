@@ -20,7 +20,7 @@ onplay = () => {
 
     <i-column xs="12" lg="6" v-for="item in getflux" :key="item.keynum">
       <div style="width:100%">
-        <div class="smallmsg"><small><b>{{ item.keynum }}</b></small> <span><i>{{ item.message }} {{ item.streamid }} </i></span>
+        <div class="smallmsg"><small><b>{{ item.keynum }}</b></small> <span><i>{{ item.message }}  </i></span>
         </div>
 
         <video :srcObject="item.stream" autoplay style="width:100%" controls></video>

@@ -7,6 +7,104 @@ const site_host = import.meta.env.VITE_SITE_HOST || "slufe.com"
 const site_title = import.meta.env.VITE_SITE_TITLE || "SLUFE"
 const env_test = import.meta.env.VITE_ENV_TEST || "ENV_TEST"
 
+
+
+////////////GETMEDIA
+let slufe_stream_status = { stream:null,cam: false, mic: false, camlabel: "", error: "" };
+let slufe_stream =null;
+let slufe_stream_muted =null;
+let videoDevices = [];
+let audioDevices = [];
+let videoIndex = 0;
+
+const slufe_stream_start=(camOn, micOn)=>{
+        slufe_stream_status = { cam: camOn, mic: micOn, camlabel: curCam(), error: "" };
+        slufe_stream_kill()
+        if (micOn || camOn) {
+          navigator.mediaDevices
+            .getUserMedia(getConstrains(camOn, micOn))
+            .then(s => {
+              listDevices();
+              slufe_stream= s;
+              slufe_muted_stream();
+              useSlufeStore().set_stream_status({ stream:s,cam: camOn, mic: micOn, camlabel: curCam(), error: "" });
+              useSlufeStore().send_stream();
+            })
+            .catch(error => {
+                console.log(error)
+                let stream_error = "⚠\nMay the browser didn't support or there is some errors.\n Or \n Camera not authorized. please check your media permissions settings"
+                useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, camlabel: curCam(), error: stream_error });
+                slufe_stream_kill()
+            })
+        } else { 
+            slufe_stream_kill()
+            useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, camlabel: curCam(), error: "" });
+         }
+      }
+
+const slufe_muted_stream=()=>{
+    if (slufe_stream) {
+       slufe_stream_muted =  slufe_stream.clone()
+
+             let audiotracks = slufe_stream_muted.getAudioTracks();
+            if (audiotracks.length > 0) { slufe_stream_muted.removeTrack(audiotracks[0]); }
+      }
+
+}
+
+const slufe_stream_kill=()=>{
+    if (slufe_stream) {
+        slufe_stream.getTracks().forEach(track => { track.stop() })
+        slufe_stream = null
+      }
+      if (slufe_stream_muted) {
+        slufe_stream_muted.getTracks().forEach(track => { track.stop() })
+        slufe_stream_muted = null
+      }
+}
+
+const listDevices = () => {
+    if (videoDevices.length == 0) {
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+            audioDevices = devices.filter(device => device.kind === 'audioinput');
+            videoDevices = devices.filter(device => device.kind === 'videoinput');
+        }).catch(error => { console.log(error) });
+
+    }
+}
+let getConstrains = (camOn, micOn) => {
+    let constrains = { audio: { echoCancellation: true }, video: true }
+    if (videoDevices.length > 0 || videoIndex < videoDevices.length) { constrains.video = { deviceId: { exact: videoDevices[videoIndex].deviceId } } }
+    if (!camOn) { constrains.video = false }
+    if (!micOn) { constrains.audio = false }
+    return constrains
+}
+let curCam = () => {
+    if (videoDevices.length == 0) { return "default" }
+    return videoDevices[videoIndex].label
+}
+let nextCam = () => {
+    if (videoDevices.length == 0) { return "default" }
+    let oldid = videoDevices[videoIndex].deviceId
+    videoIndex = (videoIndex + 1) % videoDevices.length
+    if (oldid == videoDevices[videoIndex].deviceId) { videoIndex = (videoIndex + 1) % videoDevices.length }
+    return videoDevices[videoIndex].label
+}
+
+////////////FWL
+
+let slufe_key = "000000"
+let slufe_fwl = []
+
+const update_data = (data) => {
+    slufe_key = data.key || "no key";
+    slufe_fwl = data.fwl || [];
+    useSlufeStore().set_key_msg(slufe_key,data.msg || "")
+}
+
+///////////PEERJS
+
+
 let myPeer = null;
 let peers = []
 let failed_peerid = [];
@@ -37,23 +135,15 @@ const createfakestream = () => {
     const vtrack = stream.getVideoTracks()[0];
     const videoTrack = Object.assign(vtrack, { enabled: true });
     return new MediaStream([videoTrack]);
-
-    
-  
 }
-
-
-let mystream = null;
-let mystreammuted = null;
 let fakestream = createfakestream()
 
 const new_peer = (id) => {
     var index = peers.map(function (e) { return e.id; }).indexOf(id);
     if (index < 0) {
-        let keynum = "000000"
-        let fwl = useSlufeStore().fwl
-        let ifwl = fwl.map(function (e) { return e.d; }).indexOf(id);
-        if (ifwl >= 0) { keynum = fwl[ifwl].k }
+        let keynum = "000000" 
+        let ifwl = slufe_fwl.map(function (e) { return e.d; }).indexOf(id);
+        if (ifwl >= 0) { keynum = slufe_fwl[ifwl].k }
         index = peers.push({ id: id, keynum: keynum, stream: null, message: "", connection: null, call: null, connected: false, called: false, streamid: "", cpt: 0 }) - 1;
     }
     return peers[index];
@@ -64,11 +154,9 @@ const remove_peer = (id) => {
     if (index >= 0) {
         if (peers[index].connection && peers[index].connection.open) {
             peers[index].connection.close();
-
         }
         if (peers[index].call && peers[index].call.open) {
             peers[index].call.close();
-
         }
         peers = peers.filter(function (obj) {
             return obj.id !== id;
@@ -77,26 +165,26 @@ const remove_peer = (id) => {
 }
 
 // Connections
-const onConnectionOpen =(p,cxn)=>{
+const onConnectionOpen = (p, cxn) => {
     p.connection = cxn
     p.connected = true
-    cxn.send({ keynum: useSlufeStore().key });
+    cxn.send({ keynum: slufe_key });
     useSlufeStore().message(p.keynum, "connected", "info")
-    init_call(cxn.peer)
+    init_call(cxn.peer,slufe_stream)
 }
 
-const onConnectionData = (p,data) =>{
+const onConnectionData = (p, data) => {
     if (data.keynum) { p.keynum = data.keynum }
     if (data.msg) {
         p.message = data.msg
         useSlufeStore().message(p.keynum, data.msg, "peer")
     }
-    if (data.ask && data.ask == "callme" && mystream) {
-       // init_call(cxn.peer, mystream);
+    if (data.ask && data.ask == "callme" && useSlufeStore().getmystream()) {
+        // init_call(cxn.peer, store.stream);
     }
 }
 
-const onConnectionClose =(p)=>{
+const onConnectionClose = (p) => {
     p.connected = false
     useSlufeStore().message(p.keynum, "connection closed", "info")
 }
@@ -105,17 +193,13 @@ const onConnectionClose =(p)=>{
 const onCallStream = (p, call, stream) => {
     p.call = call
     p.called = true;
-    
-    if (stream && stream.id) {
-        console.log("STREAM VT",stream.id,stream.getVideoTracks()[0])
+    if (stream ) {
         p.stream = stream
-        p.streamid = stream.id
     }
 }
 
 const onCallStop = (p) => {
     p.called = false;
-    p.streamid = ""
     p.called = false;
     if (p.stream) {
         p.stream.getTracks().forEach(track => { track.stop() })
@@ -133,22 +217,22 @@ const init_mypeer = () => {
         useSlufeStore().set(id);
         myPeer.on('connection', (cxn) => {
             let p = new_peer(cxn.peer);
-            cxn.on('open', () => {onConnectionOpen(p,cxn)})
-            cxn.on('data', (data) => {onConnectionData(p,data)})
-            cxn.on('close', () => {onConnectionClose(p)})
+            cxn.on('open', () => { onConnectionOpen(p, cxn) })
+            cxn.on('data', (data) => { onConnectionData(p, data) })
+            cxn.on('close', () => { onConnectionClose(p) })
         })
         myPeer.on('call', (call) => {
             let p = new_peer(call.peer);
-            if(mystream){
-            call.answer(mystream.clone())
-            }else{
-                call.answer() 
+            if (slufe_stream) {
+                call.answer(slufe_stream)
+            } else {
+                call.answer()
             }
-            call.on('stream', (stream) => {onCallStream(p,call, stream)})
-            call.on('close', () => {onCallStop(p)})
-            call.on('error', (err) => {console.log(err);onCallStop(p)})
-            })
- 
+            call.on('stream', (stream) => { onCallStream(p, call, stream) })
+            call.on('close', () => { onCallStop(p) })
+            call.on('error', (err) => { console.log(err); onCallStop(p) })
+        })
+
         myPeer.on('close', () => {
             remove_peer(id);
         })
@@ -187,46 +271,44 @@ const init_connection = (pid, k) => {
     if (cxn) {
         let p = new_peer(cxn.peer);
         p.keynum = k;
-        cxn.on('open', () => {onConnectionOpen(p,cxn)})
-        cxn.on('data', (data) => {onConnectionData(p,data)})
-        cxn.on('close', () => {onConnectionClose(p)})
+        cxn.on('open', () => { onConnectionOpen(p, cxn) })
+        cxn.on('data', (data) => { onConnectionData(p, data) })
+        cxn.on('close', () => { onConnectionClose(p) })
     }
 }
 
 const init_call = (pid) => {
-    console.log("INIT_CALL",pid,mystream)
-    let call 
-    
-    if(mystream){
-     call = myPeer.call(pid, mystream);
-    }else{
-     //call = myPeer.call(pid, createfakestream());
+    console.log("INIT_CALL", pid)
+    let call
+
+    if (slufe_stream) {
+        call = myPeer.call(pid, slufe_stream );
+    } else {
+        //call = myPeer.call(pid, createfakestream());
     }
 
     if (call) {
         let p = new_peer(call.peer);
-        call.on('stream', (stream) => {onCallStream(p, call,stream)})
-        call.on('close', () => {onCallStop(p)})
-        call.on('error', (err) => {console.log(err);onCallStop(p)})
-    } 
+        call.on('stream', (stream) => { onCallStream(p, call, stream) })
+        call.on('close', () => { onCallStop(p) })
+        call.on('error', (err) => { console.log(err); onCallStop(p) })
+    }
 }
 
 
 
 const synchro_fwl_peers = () => {
-    let fwl = useSlufeStore().fwl
-
-
-    for (let i = 0; i < fwl.length; i++) {
-        let f = fwl[i];
+    
+    for (let i = 0; i < slufe_fwl.length; i++) {
+        let f = slufe_fwl[i];
         var index = peers.map(function (e) { return e.id; }).indexOf(f.d);
         if (index < 0) {
             init_connection(f.d, f.k);
-            //init_call(f.d, mystream);
+            //init_call(f.d, store.stream);
         } else {
             let p = peers[index]
             if (p.connected == false && p.cpt < 20) { p.cpt = p.cpt + 1; init_connection(f.d, f.k); }
-            //if (p.called == false && p.cpt < 20) { p.cpt = p.cpt + 1; init_call(f.d, mystream); }
+            //if (p.called == false && p.cpt < 20) { p.cpt = p.cpt + 1; init_call(f.d, store.stream); }
             p.keynum = f.k;
         }
 
@@ -234,7 +316,7 @@ const synchro_fwl_peers = () => {
     let todelete = [];
 
     for (let i = 0; i < peers.length; i++) {
-        var index = fwl.map(function (e) { return e.d; }).indexOf(peers[i].id);
+        var index = slufe_fwl.map(function (e) { return e.d; }).indexOf(peers[i].id);
         if (index < 0) {
             todelete.push(peers[i].id)
         }
@@ -253,9 +335,13 @@ const synchro_fwl_peers = () => {
 export const useSlufeStore = defineStore('slufe', {
 
     state: () => ({
+        camOn: true,
+        micOn: false,
+        camlabel: "",
+        stream_error: "",
+        stream:null,
         msg: "",
         key: "000000",
-        fwl: [],
         site_host: site_host,
         site_title: site_title,
         flux: [],
@@ -266,66 +352,78 @@ export const useSlufeStore = defineStore('slufe', {
 
     }),
     actions: {
+          set_stream_status(data){
+            this.camOn=data.cam
+            this.micOn=data.mic
+            this.camlabel=data.camlabel
+            this.stream_error=data.error
+            this.stream=data.stream
+          },
+          start_stream(){
+            slufe_stream_start(this.camOn,this.micOn)
+          },
+          switchcam() {
+            this.camOn = !this.camOn;
+            slufe_stream_start(this.camOn,this.micOn)
+          },
+          switchmic() {
+            this.micOn = !this.micOn;
+            slufe_stream_start(this.camOn,this.micOn)
+          },
+          swapcam() {
+            this.camlabel = nextCam();
+            slufe_stream_start(this.camOn,this.micOn)
+          },
+          set_key_msg(k,m){
+            this.key=k| "no key";
+            this.msg=m|| "" 
+          },
 
-        update_data(data) {
-            this.updated = this.fwl.length != data.fwl.length
-            this.msg = data.msg || "";
-            this.key = data.key || "no key";
-            this.fwl = data.fwl || [];
-
-        },
         hb() {
             axios.get('/hb').then(res => {
-                this.update_data(res.data);
+                update_data(res.data);
             })
         },
         renew() {
             reset_mypeer();
             axios.get('/new').then(res => {
-                this.update_data(res.data);
+                update_data(res.data);
                 init_mypeer();
             })
         },
         set(v) {
             axios.get('/set', { params: { val: v } }).then(res => {
-                this.update_data(res.data);
+                update_data(res.data);
             })
         },
         add(k) {
             axios.get('/add', { params: { key: k } }).then(res => {
-                this.update_data(res.data);
+                update_data(res.data);
             })
         },
         clean() {
             axios.get('/clean').then(res => {
-                this.update_data(res.data);
+                update_data(res.data);
             })
         },
-        tik(){
-            this.last_tik= Date.now()
+        tik() {
+            this.last_tik = Date.now()
         },
         update_flux() {
-            //this.flux.splice(0, this.flux.length, ...peers)
-            let peerid = "";
-            let connected = false;
-            if (myPeer) {
-                peerid = myPeer.id
-                connected = true;
-            }
-            let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream || fakestream, message: e.message, connected: e.connected, me: false, streamid: e.streamid } });
-            let mystreamid =''
-            console.log(Date.now()-this.last_tik) 
-            if(mystream && Date.now()-this.last_tik > 3000 ){
-             console.log("!!!",mystream.id)   
-                mystreamid=mystream.id
-
-                 mystreammuted = mystreammuted || mystream.clone()
+ 
+            let tab = peers.map((e) => { return { id: e.id, keynum: e.keynum, stream: e.stream || fakestream, message: e.message, connected: e.connected, me: false } });
                 
-                 let audiotracks = mystreammuted.getAudioTracks();
-                 if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
-            }
 
-            tab.push({ id: peerid, keynum: this.key, stream: mystreammuted || fakestream, message: mymessage, connected: connected, me: true, streamid: mystreamid})
+            // if (store.stream && Date.now() - this.last_tik > 3000) {
+
+
+            //     store.streammuted = store.streammuted || store.stream.clone()
+
+            //     let audiotracks = store.streammuted.getAudioTracks();
+            //     if (audiotracks.length > 0) { store.streammuted.removeTrack(audiotracks[0]); }
+            // }
+
+             tab.push({ id: myPeer.id, keynum: this.key, stream: slufe_stream_muted || fakestream, message: mymessage, connected: true, me: true })
 
             this.flux = tab.sort((a, b) => (a.keynum > b.keynum) ? 1 : -1)
 
@@ -349,38 +447,38 @@ export const useSlufeStore = defineStore('slufe', {
                 }
             }
         },
-        stream(s) {
-            
-           if (mystream) {mystream.getTracks().forEach(track => { track.stop() })}
-            if (mystreammuted) {mystreammuted.getTracks().forEach(track => { track.stop() })}
-            
-            if (s != null) {
-                mystream=s
-                mystreammuted = null
-                
-                // let audiotracks = mystreammuted.getAudioTracks();
-                // if (audiotracks.length > 0) { mystreammuted.removeTrack(audiotracks[0]); }
+        send_stream() {
+           
+            // if (store.stream) {store.stream.getTracks().forEach(track => { track.stop() });store.stream = null}
+            //  if (store.streammuted) {store.streammuted.getTracks().forEach(track => { track.stop() });store.streammuted = null}
+            //     store.streammuted = null
+            //     store.stream = null
+
+            //if (slufe_stream != null) {
+
+                // let audiotracks = store.streammuted.getAudioTracks();
+                // if (audiotracks.length > 0) { store.streammuted.removeTrack(audiotracks[0]); }
 
                 for (let i = 0; i < peers.length; i++) {
-                    if (myPeer && peers[i].connection && peers[i].connection.open ){
-                        if(peers[i].call){peers[i].call.close()}
-                        //init_call(myPeer.call(peers[i].id, s))
-                        init_call(peers[i].id);
-                    }
-                }
-            } else {
-                mystreammuted = null;
-                mystream = null;
-                for (let i = 0; i < peers.length; i++) {
                     if (myPeer && peers[i].connection && peers[i].connection.open) {
-                        //init_call(myPeer.call(peers[i].id, s))
-                        if(peers[i].call){peers[i].call.close()}
+                        if (peers[i].call) { peers[i].call.close() }
                         init_call(peers[i].id);
                     }
                 }
-            }
-           
             
+            // else {
+            //     //store.streammuted = null;
+            //     //store.stream = null;
+            //     for (let i = 0; i < peers.length; i++) {
+            //         if (myPeer && peers[i].connection && peers[i].connection.open) {
+  
+            //             if (peers[i].call) { peers[i].call.close() }
+            //             init_call(peers[i].id,this.stream);
+            //         }
+            //     }
+            // }
+
+
         },
         switchshowme() {
             this.showme = !this.showme;
@@ -399,7 +497,10 @@ export const useSlufeStore = defineStore('slufe', {
 
     },
     getters: {
-        keylink: (state) => { return "https://"+state.site_host + "/" + state.key },
+        camstatus: (state) => { return state.camOn },
+        micstatus: (state) => { return state.micOn },
+        getmystream: (state) => { return state.stream },
+        keylink: (state) => { return "https://" + state.site_host + "/" + state.key },
         getflux: (state) => { return state.flux },
         getmessages: (state) => { return state.messages },
         getnf: (state) => { return state.flux.length },
@@ -408,3 +509,4 @@ export const useSlufeStore = defineStore('slufe', {
 
 
 });
+
