@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import Peer from 'peerjs';
 import axios from 'axios';
+import localstore from 'store2';
 axios.defaults.withCredentials = true;
 
 const site_host = import.meta.env.VITE_SITE_HOST || "slufe.com"
@@ -10,15 +11,16 @@ const env_test = import.meta.env.VITE_ENV_TEST || "ENV_TEST"
 
 
 ////////////GETMEDIA
-let slufe_stream_status = { stream:null,cam: false, mic: false, camlabel: "", error: "" };
+let slufe_stream_status = { stream:null,cam: false, mic: false, camlabel: "", miclabel: "", error: "" };
 let slufe_stream =null;
 let slufe_stream_muted =null;
 let videoDevices = [];
 let audioDevices = [];
-let videoIndex = 0;
+let videoIndex = localstore("videoIndex") || 0;
+let audioIndex = localstore("audioIndex") || 0;
 
 const slufe_stream_start=(camOn, micOn)=>{
-        slufe_stream_status = { cam: camOn, mic: micOn, camlabel: curCam(), error: "" };
+        slufe_stream_status = { cam: camOn, mic: micOn, miclabel: curMic(),camlabel: curCam(), error: "" };
         slufe_stream_kill()
         if (micOn || camOn) {
           navigator.mediaDevices
@@ -27,18 +29,18 @@ const slufe_stream_start=(camOn, micOn)=>{
               listDevices();
               slufe_stream= s;
               slufe_muted_stream();
-              useSlufeStore().set_stream_status({ stream:s,cam: camOn, mic: micOn, camlabel: curCam(), error: "" });
+              useSlufeStore().set_stream_status({ stream:s,cam: camOn, mic: micOn,miclabel: curMic(), camlabel: curCam(), error: "" });
               useSlufeStore().send_stream();
             })
             .catch(error => {
                 console.log(error)
                 let stream_error = "⚠\nMay the browser didn't support or there is some errors.\n Or \n Camera not authorized. please check your media permissions settings"
-                useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, camlabel: curCam(), error: stream_error });
+                useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, miclabel: curMic(),camlabel: curCam(), error: stream_error });
                 slufe_stream_kill()
             })
         } else { 
             slufe_stream_kill()
-            useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, camlabel: curCam(), error: "" });
+            useSlufeStore().set_stream_status({ stream:null,cam: false, mic: false, miclabel: curMic(),camlabel: curCam(), error: "" });
          }
       }
 
@@ -68,6 +70,8 @@ const listDevices = () => {
         navigator.mediaDevices.enumerateDevices().then(devices => {
             audioDevices = devices.filter(device => device.kind === 'audioinput');
             videoDevices = devices.filter(device => device.kind === 'videoinput');
+    //        if(videoIndex >= videoDevices.length ){ videoIndex =0;}
+     //       if(audioIndex >= audioDevices.length ){ audioIndex =0;}
         }).catch(error => { console.log(error) });
 
     }
@@ -75,6 +79,7 @@ const listDevices = () => {
 let getConstrains = (camOn, micOn) => {
     let constrains = { audio: { echoCancellation: true }, video: true }
     if (videoDevices.length > 0 || videoIndex < videoDevices.length) { constrains.video = { deviceId: { exact: videoDevices[videoIndex].deviceId } } }
+    if (audioDevices.length > 0 || audioIndex < audioDevices.length) { constrains.audio = { echoCancellation: true ,deviceId: { exact: audioDevices[audioIndex].deviceId } } }
     if (!camOn) { constrains.video = false }
     if (!micOn) { constrains.audio = false }
     return constrains
@@ -83,12 +88,23 @@ let curCam = () => {
     if (videoDevices.length == 0) { return "default" }
     return videoDevices[videoIndex].label
 }
+let curMic = () => {
+    if (audioDevices.length == 0) { return "default" }
+    return audioDevices[audioIndex].label
+}
 let nextCam = () => {
     if (videoDevices.length == 0) { return "default" }
     let oldid = videoDevices[videoIndex].deviceId
     videoIndex = (videoIndex + 1) % videoDevices.length
     if (oldid == videoDevices[videoIndex].deviceId) { videoIndex = (videoIndex + 1) % videoDevices.length }
     return videoDevices[videoIndex].label
+}
+let nextMic = () => {
+    if (audioDevices.length == 0) { return "default" }
+    let oldid = audioDevices[audioIndex].deviceId
+    audioIndex = (audioIndex + 1) % audioDevices.length
+    if (oldid == audioDevices[audioIndex].deviceId) { audioIndex = (audioIndex + 1) % audioDevices.length }
+    return audioDevices[audioIndex].label
 }
 
 ////////////FWL
@@ -331,6 +347,7 @@ const synchro_fwl_peers = () => {
 }
 
 
+//////////////////// STORE
 
 export const useSlufeStore = defineStore('slufe', {
 
@@ -338,6 +355,7 @@ export const useSlufeStore = defineStore('slufe', {
         camOn: true,
         micOn: false,
         camlabel: "",
+        miclabel: "",
         stream_error: "",
         stream:null,
         msg: "",
@@ -346,7 +364,7 @@ export const useSlufeStore = defineStore('slufe', {
         site_title: site_title,
         flux: [],
         messages: [],
-        showme: true,
+        showme: localstore("showme") == null || localstore("showme") ,
         last_tik: Date.now(),
         env_test: env_test
 
@@ -356,23 +374,28 @@ export const useSlufeStore = defineStore('slufe', {
             this.camOn=data.cam
             this.micOn=data.mic
             this.camlabel=data.camlabel
+            this.miclabel=data.miclabel
             this.stream_error=data.error
-            this.stream=data.stream
+            this.stream=data.stream 
           },
           start_stream(){
             slufe_stream_start(this.camOn,this.micOn)
           },
           switchcam() {
             this.camOn = !this.camOn;
-            slufe_stream_start(this.camOn,this.micOn)
+            this.start_stream()
           },
           switchmic() {
             this.micOn = !this.micOn;
-            slufe_stream_start(this.camOn,this.micOn)
+            this.start_stream()
           },
           swapcam() {
             this.camlabel = nextCam();
-            slufe_stream_start(this.camOn,this.micOn)
+            this.start_stream()
+          },
+          swapmic() {
+            this.miclabel = nextMic();
+            this.start_stream()
           },
           set_key_msg(k,m){
             this.key=k| "no key";
@@ -481,7 +504,10 @@ export const useSlufeStore = defineStore('slufe', {
 
         },
         switchshowme() {
+            console.log("showme")
             this.showme = !this.showme;
+            localstore("showme",this.showme)
+            
         },
         init_peer() {
             reset_mypeer();
@@ -492,7 +518,12 @@ export const useSlufeStore = defineStore('slufe', {
         },
         synchro() {
             synchro_fwl_peers();
-
+        },
+        onleave(){
+            reset_mypeer();
+            localstore("showme",this.showme)
+            localstore("audioIndex",audioIndex) 
+            localstore("videoIndex",videoIndex) 
         }
 
     },

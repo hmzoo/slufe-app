@@ -61,13 +61,13 @@ onMounted(() => {
   cookieok.value = localStorage.getItem('cookie-comply') != null;
   slufe.init_peer();
   slufe.hb();
-  window.addEventListener('beforeunload', () => { slufe.reset_peer() });
+  window.addEventListener('beforeunload', () => { slufe.onleave() });
   window.setInterval(() => {
     slufe.hb();
     slufe.synchro();
   }, 3000);
 });
-onBeforeUnmount(() => slufe.destroy())
+
 
 const copylink = () => {
   navigator.clipboard.writeText(slufe.keylink);

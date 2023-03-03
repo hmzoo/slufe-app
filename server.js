@@ -152,5 +152,5 @@ app.get('^/:qkey([0-9]{6})', function (req, res) {
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-  console.log(`LISTENING: http://localhost:${port}`);
+  console.log(`EXPRESS LISTENING : http://localhost:${port}`);
 });
