@@ -1,7 +1,7 @@
 <script setup>
 import logo from '@/assets/logo.png';
 import logo_small from '@/assets/logo_small.png';
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { storeToRefs } from "pinia";
 import Settings from '@/components/Settings.vue';
 import Chat from '@/components/Chat.vue';

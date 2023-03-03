@@ -46,9 +46,9 @@ const props = defineProps({
 	background:linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
 	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f6f6f6',GradientType=0);
 	background-color:#ffffff;
-	-webkit-border-radius:6px;
-	-moz-border-radius:6px;
-	border-radius:6px;
+	-webkit-border-radius:3px;
+	-moz-border-radius:3px;
+	border-radius:3px;
 	border:1px solid #dcdcdc;
 	display:inline-block;
 	cursor:pointer;

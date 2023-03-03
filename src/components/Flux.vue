@@ -6,12 +6,10 @@ import { useSlufeStore } from '@/stores/slufe'
 const { getflux, getnf, showme } = storeToRefs(useSlufeStore());
 
 onUpdated(() => {
-  console.log('onUpdated called!')
+
 })
 
-onplay = () => {
-  console.log("play");
-}
+
 
 </script>
 

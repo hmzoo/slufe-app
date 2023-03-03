@@ -18,7 +18,7 @@ const slufe=useSlufeStore();
    
   </div><br/>
   <div style="width:270px;display: inline-block;margin-bottom:5px" v-if="slufe.camOn">
- <span class="camText"  ><b>CAM : </b>{{ slufe.camlabel}}</span>
+ <span class="labelText"  ><b>CAM : </b>{{ slufe.camlabel}}</span>
  <div style="float:right"><IcoBtn ico="swap"  @click="slufe.swapcam" v-if="slufe.camOn && slufe.camlabel"/></div>
   </div>
 
@@ -30,7 +30,7 @@ const slufe=useSlufeStore();
     <video :srcObject="slufe.stream" style="width:100%"  muted="true" autoplay></video>
   </div>
   <div style="width:270px;display: inline-block;margin-bottom:5px" v-if="slufe.micOn">
- <span class="camText"  ><b>MIC : </b>{{ slufe.miclabel}}</span>
+ <span class="labelText"  ><b>MIC : </b>{{ slufe.miclabel}}</span>
  <div style="float:right"><IcoBtn ico="swap"  @click="slufe.swapmic" v-if="slufe.micOn && slufe.miclabel"/></div>
   </div>
 
@@ -40,16 +40,19 @@ const slufe=useSlufeStore();
 
 <style>
 
-.camText {
+.labelText {
   display: inline-block;
-  width: 205px;
-  height:16px;
-  font-size:12px;
+  width: 230px;
+  height:20x;
+  font-size:11px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  padding:2px 4px;
-  margin: 0px
+  padding:2px 2px;
+  margin: 0px;
+  vertical-align: middle;
+  color: #DDDDFF;
+ 
 }
 
 .errText {
