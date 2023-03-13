@@ -40,6 +40,8 @@ services:
       - "traefik.http.routers.app.tls.certresolver=myresolver"
       - "traefik.http.routers.app.tls.domains[0].main=slufe.net"
       - "traefik.http.routers.app.tls.domains[0].sans=www.slufe.net"
+      - "traefik.http.routers.app.tls.domains[1].main=slufe.fr"
+      - "traefik.http.routers.app.tls.domains[1].sans=www.slufe.fr"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
       - "traefik.http.routers.redirs.entrypoints=web"
