@@ -10,7 +10,7 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=${VITE_SITE_CONTACT?Variable not set}"
+      - "--certificatesresolvers.myresolver.acme.email=hmj@goatpage.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
@@ -35,7 +35,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=5000"
-      - "traefik.http.routers.node-server.rule=Host(`${VITE_SITE_HOST?Variable not set}`)"
+      - "traefik.http.routers.node-server.rule=Host(`slufe.net,slufe.fr`)"
       - "traefik.http.routers.node-server.entrypoints=websecure"
       - "traefik.http.routers.node-server.tls.certresolver=myresolver"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
