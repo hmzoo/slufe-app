@@ -35,7 +35,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=5000"
-      - "traefik.http.routers.app.rule=Host(`slufe.net`)"
+      - "traefik.http.routers.app.rule=Host(`slufe.net`,`www.slufe.net`)"
       - "traefik.http.routers.app.entrypoints=websecure"
       - "traefik.http.routers.app.tls.certresolver=myresolver"
       - "traefik.http.routers.app.tls.domains[0].main=slufe.net"
